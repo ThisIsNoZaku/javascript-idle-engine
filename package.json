@@ -5,8 +5,8 @@
   "main": "dist/Engine.js",
   "scripts": {
     "test": "jest",
-    "build": "gulp",
-    "preinstall": "gulp"
+    "build": "npx gulp",
+    "preinstall": "npm run build"
   },
   "keywords": [],
   "author": "",
