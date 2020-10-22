@@ -2,7 +2,7 @@
   "name": "javascript-idle-framework",
   "version": "0.0.1",
   "description": "",
-  "main": "dist/Engine.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "jest",
     "build": "npx gulp build",
