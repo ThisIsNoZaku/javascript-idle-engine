@@ -1,6 +1,5 @@
 import { EngineConfiguration } from "./EngineConfiguration";
 import { ValueContainer } from "./ValueContainer";
-import FixedPropertiesProxy from "./FixedPropertiesProxy";
 
 export class Engine {
     public readonly globals:any;

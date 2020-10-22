@@ -13,7 +13,7 @@ export class ValueContainer implements EventSource{
         this.updaterFunction = updaterFunction;
         this.engine = engine;
         if(_.isArray(startingValue)) {
-            this.value = startingValue.map((i:any) => new ValueContainer(engine, i, this, null));
+            this.value = wrapArray(engine, this, <any[]>startingValue);
         } else if(_.isObject(startingValue)) {
             this.value = Object.keys(startingValue).reduce((obj:any, key:string) => {
                 obj[key] = new ValueContainer(engine, (<any>startingValue)[key], this, null);
@@ -53,4 +53,20 @@ export class ValueContainer implements EventSource{
             this.set(this.updaterFunction(engine, this.parentContainer, this.value));
         }
     }
+}
+
+function wrapArray(engine:Engine, parent: ValueContainer, array:any[]) {
+    const transformed = array.map(i => new ValueContainer(engine, i, parent, null));
+    let handler = {
+        set: function (target:any[], propertyOrIndex:string, value:any) {
+            if(typeof propertyOrIndex === "number") {
+                target[propertyOrIndex] = new ValueContainer(engine, value, parent, null);
+            } else {
+                (<any>target)[propertyOrIndex] = value;
+            }
+            return true;
+        }
+
+    };
+    return new Proxy<any[]>(transformed, handler);
 }
