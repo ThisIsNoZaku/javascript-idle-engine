@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "build": "npx gulp",
-    "preinstall": "npm i && npm run build"
+    "preinstall": "pm run build"
   },
   "keywords": [],
   "author": "",
