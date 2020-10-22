@@ -10,8 +10,8 @@ function watchBuild() {
 exports.watchBuild = watchBuild;
 
 function build() {
-    tsProject.src().pipe(tsProject());
-    return src("src/*.js").pipe(dest("dist"));
+    var tsCompileResult = tsProject.src().pipe(tsProject());
+    return tsCompileResult.js.pipe(dest("dist"));
 }
 exports.build = build;
 
