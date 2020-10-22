@@ -13,7 +13,7 @@ export class ValueContainer implements EventSource{
         this.updaterFunction = updaterFunction;
         this.engine = engine;
         if(_.isArray(startingValue)) {
-            this.value = startingValue.map(i => new ValueContainer(engine, i, this, null));
+            this.value = startingValue.map((i:any) => new ValueContainer(engine, i, this, null));
         } else if(_.isObject(startingValue)) {
             this.value = Object.keys(startingValue).reduce((obj:any, key:string) => {
                 obj[key] = new ValueContainer(engine, (<any>startingValue)[key], this, null);
