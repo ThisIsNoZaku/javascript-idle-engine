@@ -10,12 +10,14 @@ function watchBuild() {
 exports.watchBuild = watchBuild;
 
 function build() {
+    console.log("Building to dist directory from " + process.cwd());
     tsProject.src().pipe(tsProject());
     return src("src/*.js").pipe(dest("dist"));
 }
 exports.build = build;
 
 function clean(cb) {
+    console.info("Cleaning built directory");
     return del(['dist'], cb);
 }
 exports.clean = clean;
