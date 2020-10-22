@@ -1,4 +1,5 @@
 import Engine from "./Engine";
+import EngineConfiguration from "./EngineConfiguration";
 
-export * as Engine from "./Engine";
-export * as EngineConfiguration from "./EngineConfiguration";
+export { Engine };
+export {  EngineConfiguration };
