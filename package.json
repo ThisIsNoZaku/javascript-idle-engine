@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "build": "npx gulp build",
-    "postinstall": "npx gulp buildForProduction"
+    "postinstall": "npm run build"
   },
   "keywords": [],
   "author": "",
