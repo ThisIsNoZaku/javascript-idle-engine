@@ -21,7 +21,7 @@ export class EngineConfiguration {
             startingValue: declaration
         };
         if(_.isArray(config.startingValue)) {
-            config.startingValue = _.isArray(config.startingValue) ? config.startingValue.map((i => this.transformToConfiguration(i))) : config.startingValue
+            config.startingValue = _.isArray(config.startingValue) ? config.startingValue.map(((i: any) => this.transformToConfiguration(i))) : config.startingValue
         } else if (_.isObject(config.startingValue)) {
             config.startingValue = this.transformObject(config.startingValue);
         }
