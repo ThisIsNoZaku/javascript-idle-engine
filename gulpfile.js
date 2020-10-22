@@ -11,7 +11,7 @@ exports.watchBuild = watchBuild;
 
 function buildForProduction() {
     tsProject.src().pipe(tsProject({
-        exclude: ["tests/*.*"]
+        excludes: ["tests/*.*"]
     }));
     return src("src/*.js").pipe(dest("dist"));
 }
