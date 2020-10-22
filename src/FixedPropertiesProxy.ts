@@ -1,5 +1,3 @@
-import stringMatching = jasmine.stringMatching;
-
 const builtInProperties = ["constructor", "nodeType", "tagName"];
 export default function (objectToWrap: any) {
     const handler:ProxyHandler<any> = {
