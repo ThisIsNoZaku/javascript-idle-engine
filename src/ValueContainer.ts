@@ -60,7 +60,7 @@ export class ValueContainer implements EventSource{
 }
 
 function wrapArray(engine:Engine, parent: ValueContainer, array:any[]) {
-    const transformed = array.map(i => new ValueContainer(engine, i.startingValue, parent, null));
+    const transformed = array.map(i => new ValueContainer(engine, i.startingValue, parent, i.updater));
     let handler = {
         set: function (target:any[], propertyOrIndex:string, value:any) {
             const parsedIndex = Number.parseInt(propertyOrIndex);
