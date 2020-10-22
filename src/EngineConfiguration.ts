@@ -17,13 +17,16 @@ export class EngineConfiguration {
     }
 
     private transformToConfiguration(declaration: PropertyDeclaration) {
-        const config: any = _.isObject(declaration) ? <PropertyConfiguration>declaration : {
+        const config: any = _.isObject(declaration) && !_.isArray(declaration) ? <PropertyConfiguration>declaration : {
             startingValue: declaration
         };
         if(_.isArray(config.startingValue)) {
             config.startingValue = _.isArray(config.startingValue) ? config.startingValue.map(((i: any) => this.transformToConfiguration(i))) : config.startingValue
         } else if (_.isObject(config.startingValue)) {
-            config.startingValue = this.transformToConfiguration(config.startingValue);
+            config.startingValue = Object.keys(config.startingValue).reduce((transformed: any, key:string) => {
+                transformed[key] = this.transformToConfiguration(config.startingValue[key])
+                return transformed;
+            }, {});
         }
         return config;
     }
