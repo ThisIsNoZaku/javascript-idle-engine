@@ -1,7 +1,7 @@
 import EventSource from "./EventSource";
-import Engine from "./Engine";
+import { Engine } from "./Engine";
 
-export default class ValueContainer implements EventSource{
+export class ValueContainer implements EventSource{
     private readonly listeners:any = {};
     private readonly engine:Engine;
     private value:any;

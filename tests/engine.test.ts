@@ -1,6 +1,5 @@
-import EngineConfiguration from "../src/EngineConfiguration";
-import Engine from "../src/Engine";
-import ValueContainer from "../src/ValueContainer";
+import { EngineConfiguration } from "../src/EngineConfiguration";
+import { Engine } from "../src/Engine";
 
 describe("the engine", function () {
     var engine: Engine;

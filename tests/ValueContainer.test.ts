@@ -1,5 +1,5 @@
-import ValueContainer from "../src/ValueContainer";
-import Engine from "../src/Engine";
+import { ValueContainer } from "../src/ValueContainer";
+import { Engine } from "../src/Engine";
 
 describe("ValueContainer", function () {
     it("wraps a value", function () {

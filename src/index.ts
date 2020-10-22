@@ -1,5 +1,2 @@
-import Engine from "./Engine";
-import EngineConfiguration from "./EngineConfiguration";
-
-export { Engine };
-export {  EngineConfiguration };
+export { Engine } from "./Engine";
+export {  EngineConfiguration } from "./EngineConfiguration";

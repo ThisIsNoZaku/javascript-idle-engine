@@ -1,4 +1,4 @@
-import EngineConfiguration from "../src/EngineConfiguration";
+import { EngineConfiguration } from "../src/EngineConfiguration";
 
 describe("the engine configuration", function() {
     var configuration: EngineConfiguration;

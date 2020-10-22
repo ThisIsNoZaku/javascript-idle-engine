@@ -1,6 +1,6 @@
-import PropertyConfiguration from "./PropertyConfiguration";
+import { PropertyConfiguration } from "./PropertyConfiguration";
 
-export default class EngineConfiguration {
+export class EngineConfiguration {
     public globals:{[name:string]: PropertyConfiguration } = {};
     public tickRate:string = "one-second";
     constructor() {

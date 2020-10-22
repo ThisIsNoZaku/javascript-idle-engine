@@ -1,8 +1,8 @@
-import EngineConfiguration from "./EngineConfiguration";
-import ValueContainer from "./ValueContainer";
+import { EngineConfiguration } from "./EngineConfiguration";
+import { ValueContainer } from "./ValueContainer";
 import FixedPropertiesProxy from "./FixedPropertiesProxy";
 
-export default class Engine {
+export class Engine {
     public readonly globals:any;
     public readonly tickRate:string;
     private readonly references:any = {};

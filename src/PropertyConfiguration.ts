@@ -1,11 +1,11 @@
-import Engine from "./Engine";
-import ValueContainer from "./ValueContainer";
+import { Engine } from "./Engine";
+import { ValueContainer } from "./ValueContainer";
 
 const expectedProperties = [
     "startingValue",
     "updater"
 ]
-export default class PropertyConfiguration {
+export class PropertyConfiguration {
     private startingValue?: any;
     private updater?: null | ((engine: Engine, parent: (ValueContainer | null), current: any) => any);
 
