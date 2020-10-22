@@ -8,7 +8,7 @@ export class EngineConfiguration {
 
     }
 
-    public transformObject(globals:{[name:string]: PropertyDeclaration }) {
+    public WithGlobalProperties(globals:{[name:string]: PropertyDeclaration }) {
         this.globals = Object.keys(globals).reduce((transformed: { [key:string]: PropertyConfiguration }, key) => {
             transformed[key] = this.transformToConfiguration(globals[key]);
             return transformed;
