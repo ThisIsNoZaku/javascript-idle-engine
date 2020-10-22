@@ -1,2 +1,2 @@
 export { Engine } from "./Engine";
-export {  EngineConfiguration } from "./EngineConfiguration";
+export { EngineConfiguration } from "./EngineConfiguration";

@@ -26,5 +26,9 @@ describe("ValueContainer", function () {
     });
     it("can defined an updater function which modifies its value each tick", function () {
         const ref = new ValueContainer(<Engine>(<unknown>null), "string", null, null);
-    })
+    });
+    it("does not replace an array value with an object", function() {
+        const ref = new ValueContainer(<Engine>(<unknown>null), [], null, null);
+        expect(ref.get()).toEqual([]);
+    });
 });

@@ -1,5 +1,6 @@
 import EventSource from "./EventSource";
 import { Engine } from "./Engine";
+import * as _ from "lodash";
 
 export class ValueContainer implements EventSource{
     private readonly listeners:any = {};
@@ -11,9 +12,11 @@ export class ValueContainer implements EventSource{
         this.parentContainer = parentContainer;
         this.updaterFunction = updaterFunction;
         this.engine = engine;
-        if(typeof startingValue === "object") {
+        if(_.isArray(startingValue)) {
+            this.value = startingValue.map(i => new ValueContainer(engine, i, this, null));
+        } else if(_.isObject(startingValue)) {
             this.value = Object.keys(startingValue).reduce((obj:any, key:string) => {
-                obj[key] = new ValueContainer(engine, startingValue[key], this, null);
+                obj[key] = new ValueContainer(engine, (<any>startingValue)[key], this, null);
                 return obj;
             }, {});
         } else {
