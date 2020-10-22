@@ -17,10 +17,13 @@ export class EngineConfiguration {
     }
 
     private transformToConfiguration(declaration: PropertyDeclaration) {
-        const globalValue: any = _.isArray(declaration) ? declaration.map((x: PropertyDeclaration) => this.transformToConfiguration(x)) : declaration;
-        return typeof globalValue === "object" ? globalValue : {
-            startingValue: globalValue
+        const config: PropertyConfiguration = _.isObject(declaration) ? <PropertyConfiguration>declaration : {
+            startingValue: declaration
         };
+        if(_.isArray(config.startingValue)) {
+            config.startingValue = _.isArray(config.startingValue) ? config.startingValue.map((i => this.transformToConfiguration(i))) : config.startingValue
+        }
+        return config;
     }
 
     public WithTickRate(tickRate: string) {
