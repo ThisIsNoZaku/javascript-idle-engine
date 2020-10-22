@@ -8,7 +8,7 @@ export class EngineConfiguration {
 
     }
 
-    public WithGlobalProperties(globals:{[name:string]: PropertyDeclaration }) {
+    public transformObject(globals:{[name:string]: PropertyDeclaration }) {
         this.globals = Object.keys(globals).reduce((transformed: { [key:string]: PropertyConfiguration }, key) => {
             transformed[key] = this.transformToConfiguration(globals[key]);
             return transformed;
@@ -17,11 +17,13 @@ export class EngineConfiguration {
     }
 
     private transformToConfiguration(declaration: PropertyDeclaration) {
-        const config: PropertyConfiguration = _.isObject(declaration) ? <PropertyConfiguration>declaration : {
+        const config: any = _.isObject(declaration) ? <PropertyConfiguration>declaration : {
             startingValue: declaration
         };
         if(_.isArray(config.startingValue)) {
             config.startingValue = _.isArray(config.startingValue) ? config.startingValue.map((i => this.transformToConfiguration(i))) : config.startingValue
+        } else if (_.isObject(config.startingValue)) {
+            config.startingValue = this.transformObject(config.startingValue);
         }
         return config;
     }
