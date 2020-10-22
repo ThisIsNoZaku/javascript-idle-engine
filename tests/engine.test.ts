@@ -1,8 +1,9 @@
 import { EngineConfiguration } from "../src/EngineConfiguration";
 import { Engine } from "../src/Engine";
+import {ValueContainer} from "../src/ValueContainer";
 
 describe("the engine", function () {
-    var engine: Engine;
+    let engine: Engine;
     beforeEach(() => {
         engine = new Engine(new EngineConfiguration().WithGlobalProperties({
             string: "string",
@@ -29,7 +30,32 @@ describe("the engine", function () {
         expect(engine.globals.string.get()).toEqual("newString");
         expect(originalValue).toBe(engine.globals.string);
     });
-    it("can define a one-second, half-second, quarter-second or tenth-second internal rate", function () {
-        expect(engine.tickRate).toEqual("one-second");
-    });
 });
+
+describe("Configuring global properties", function () {
+    let engine: Engine;
+    beforeEach(() => {
+        engine = new Engine(new EngineConfiguration().WithGlobalProperties({
+            string: "string",
+            number: 1,
+            boolean: true,
+            object: {},
+            withUpdater: {
+                updater: (e:Engine, p:ValueContainer | null, v:any) => <any>null
+            },
+            withStartingValue: {
+                startingValue: 1
+            }
+        }));
+    });
+    it("takes a string or number as a starting value", function () {
+        expect(engine.globals.string.get()).toBe("string");
+        expect(engine.globals.number.get()).toBe(1);
+    });
+    it("uses an object to configure a property", function () {
+        expect(engine.globals.object.get()).toBeUndefined();
+    });
+    it("uses the startingValue property of the object", function () {
+        expect(engine.globals.withStartingValue.get()).toBe(1);
+    })
+})

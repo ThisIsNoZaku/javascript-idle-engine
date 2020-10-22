@@ -13,11 +13,11 @@ export class EngineConfiguration {
     }
 
     private transformGlobals(globals: {[name:string]: any }) {
-        return Object.keys(globals).reduce((transformed:any, key) => {
+        return Object.keys(globals).reduce((transformed: { [key:string]: PropertyConfiguration }, key) => {
             const configuration = typeof globals[key] === "object" ? globals[key] : {
                 startingValue: globals[key]
             };
-            transformed[key] = new PropertyConfiguration(configuration.startingValue, configuration.updater);
+            transformed[key] = configuration;
             return transformed;
         }, {});
     }
