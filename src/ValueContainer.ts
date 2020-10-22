@@ -59,8 +59,9 @@ function wrapArray(engine:Engine, parent: ValueContainer, array:any[]) {
     const transformed = array.map(i => new ValueContainer(engine, i, parent, null));
     let handler = {
         set: function (target:any[], propertyOrIndex:string, value:any) {
-            if(typeof propertyOrIndex === "number") {
-                target[propertyOrIndex] = new ValueContainer(engine, value, parent, null);
+            const parsedIndex = Number.parseInt(propertyOrIndex);
+            if(!Number.isNaN(parsedIndex)) {
+                target[parsedIndex] = new ValueContainer(engine, value, parent, null);
             } else {
                 (<any>target)[propertyOrIndex] = value;
             }
