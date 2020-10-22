@@ -15,8 +15,9 @@ export class ValueContainer implements EventSource{
         if(_.isArray(startingValue)) {
             this.value = wrapArray(engine, this, <any[]>startingValue);
         } else if(_.isObject(startingValue)) {
+            let containingValue = startingValue;
             this.value = Object.keys(startingValue).reduce((obj:any, key:string) => {
-                obj[key] = new ValueContainer(engine, (<any>startingValue)[key], this, null);
+                obj[key] = new ValueContainer(engine, (<any>containingValue)[key].startingValue, this, null);
                 return obj;
             }, {});
         } else {
