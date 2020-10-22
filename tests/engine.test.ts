@@ -57,5 +57,5 @@ describe("Configuring global properties", function () {
     });
     it("uses the startingValue property of the object", function () {
         expect(engine.globals.withStartingValue.get()).toBe(1);
-    })
+    });
 })

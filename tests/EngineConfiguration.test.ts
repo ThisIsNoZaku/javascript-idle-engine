@@ -5,7 +5,8 @@ describe("the engine configuration", function() {
     beforeEach(() => {
         configuration = new EngineConfiguration()
             .WithGlobalProperties({
-            property: "aString"
+                property: "aString",
+                array: ["s", 1, true, {startingValue: 2}]
         });
     });
     it("has a global property declaration object", function() {
@@ -20,8 +21,5 @@ describe("the engine configuration", function() {
                 anObject: {}
             });
         })
-    });
-    it("can use an object to configure a global property", function() {
-
     });
 });

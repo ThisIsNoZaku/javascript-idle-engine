@@ -1,4 +1,5 @@
 import { PropertyConfiguration } from "./PropertyConfiguration";
+import _ from "lodash";
 
 export class EngineConfiguration {
     public globals:{[name:string]: PropertyConfiguration } = {};
@@ -7,19 +8,19 @@ export class EngineConfiguration {
 
     }
 
-    public WithGlobalProperties(globals:{[name:string]: PropertyConfiguration | string | number | boolean }) {
-        this.globals = this.transformGlobals(globals);
+    public WithGlobalProperties(globals:{[name:string]: PropertyDeclaration }) {
+        this.globals = Object.keys(globals).reduce((transformed: { [key:string]: PropertyConfiguration }, key) => {
+            transformed[key] = this.transformToConfiguration(globals[key]);
+            return transformed;
+        }, {});
         return this;
     }
 
-    private transformGlobals(globals: {[name:string]: any }) {
-        return Object.keys(globals).reduce((transformed: { [key:string]: PropertyConfiguration }, key) => {
-            const configuration = typeof globals[key] === "object" ? globals[key] : {
-                startingValue: globals[key]
-            };
-            transformed[key] = configuration;
-            return transformed;
-        }, {});
+    private transformToConfiguration(declaration: PropertyDeclaration) {
+        const globalValue: any = _.isArray(declaration) ? declaration.map((x: PropertyDeclaration) => this.transformToConfiguration(x)) : declaration;
+        return typeof globalValue === "object" ? globalValue : {
+            startingValue: globalValue
+        };
     }
 
     public WithTickRate(tickRate: string) {
@@ -36,3 +37,5 @@ export class EngineConfiguration {
         return this;
     }
 }
+
+type PropertyDeclaration = PropertyConfiguration | string | number | boolean | PropertyDeclaration[];
