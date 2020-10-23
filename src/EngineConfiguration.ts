@@ -2,11 +2,8 @@ import { PropertyConfiguration } from "./PropertyConfiguration";
 import _ from "lodash";
 
 export class EngineConfiguration {
-    public globals:{[name:string]: PropertyConfiguration } = {};
-    public tickRate:string = "one-second";
-    constructor() {
-
-    }
+    public globals?:{[name:string]: PropertyConfiguration } = {};
+    public tickRate?:string = "one-second";
 
     public WithGlobalProperties(globals:{[name:string]: PropertyDeclaration }) {
         this.globals = Object.keys(globals).reduce((transformed: { [key:string]: PropertyConfiguration }, key) => {
