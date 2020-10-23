@@ -45,10 +45,19 @@ export class EngineConfiguration {
     }
 
     public static configProperty(startingValue?:any, updater?:(current:any, parent?:ValueContainer, engine?: Engine)=>any){
-        return {
-            startingValue,
-            updater
+        if(_.isObject(startingValue)) {
+            startingValue = _.isArray(startingValue) ? startingValue.map(x => this.configProperty(x)) : Object.keys(startingValue).reduce((transformed:any, next)=>{
+                transformed[next] = this.configProperty((startingValue as any)[next]);
+                return transformed;
+            }, {});
         }
+        if(updater) {
+            return {
+                startingValue,
+                updater
+            }
+        }
+        return {startingValue};
     }
 }
 
