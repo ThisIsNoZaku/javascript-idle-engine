@@ -5,7 +5,13 @@ const expectedProperties = [
     "startingValue",
     "updater"
 ]
-export interface PropertyConfiguration {
+export class PropertyConfiguration {
     startingValue?: any;
     updater?: ((current: any, parent?: ValueContainer, engine?: Engine) => any);
+    public constructor(startingValue?:any, updater?: ((current: any, parent?: ValueContainer, engine?: Engine) => any)) {
+        this.startingValue = startingValue;
+        if(updater) {
+            this.updater = updater;
+        }
+    }
 }

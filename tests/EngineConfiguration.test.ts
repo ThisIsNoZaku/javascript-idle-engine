@@ -88,4 +88,35 @@ describe("configProperty helper", function () {
             }
         });
     });
+    it("uses an existing configuration object", function () {
+        const config = EngineConfiguration.configProperty({
+            object: {
+                nestedString: "nestedString",
+                nestedNumber: 1,
+                nestedBoolean: true,
+            },
+            existingConfig : EngineConfiguration.configProperty({}, ()=>{})
+        });
+        expect(Object.assign({}, config)).toMatchObject(Object.assign({}, {
+            startingValue: {
+                object: {
+                    startingValue: {
+                        nestedString: {
+                            startingValue: "nestedString",
+                        },
+                        nestedNumber: {
+                            startingValue: 1
+                        },
+                        nestedBoolean: {
+                            startingValue: true
+                        }
+                    }
+                },
+                existingConfig: {
+                    startingValue: {},
+                    updater: expect.any(Function)
+                }
+            }
+        }));
+    })
 })
