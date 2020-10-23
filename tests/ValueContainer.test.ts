@@ -73,7 +73,7 @@ describe("array ValueContainer", function () {
         ref.get()[0] = 321;
         expect(ref.get()[0] === original).toBeTruthy();
     });
-    it("inserting into an array notifies array listeners", function () {
+    it("modifying an object notifies all parent listeners", function () {
         const topCallback = jest.fn();
         const middleCallback = jest.fn();
         const bottomCallback = jest.fn();
@@ -81,6 +81,25 @@ describe("array ValueContainer", function () {
         engine.globals.top.get().middle.on("changed", middleCallback);
         engine.globals.top.get().middle.get().bottom.on("changed", bottomCallback);
         engine.globals.top.get().middle.get().bottom.set(123);
+
+        expect(bottomCallback.mock.calls.length).toBe(1);
+        expect(middleCallback.mock.calls.length).toBe(1);
+        expect(topCallback.mock.calls.length).toBe(1);
+    });
+
+    it("modifying an object notifies all parent listeners", function () {
+        engine = new Engine(new EngineConfiguration()
+            .WithGlobalProperties({
+                    top: EngineConfiguration.configProperty([[[0]]])
+                }
+            ));
+        const topCallback = jest.fn();
+        const middleCallback = jest.fn();
+        const bottomCallback = jest.fn();
+        engine.globals.top.on("changed", topCallback);
+        engine.globals.top.get()[0].on("changed", middleCallback);
+        engine.globals.top.get()[0].get()[0].on("changed", bottomCallback);
+        engine.globals.top.get()[0].get()[0].set(1);
 
         expect(bottomCallback.mock.calls.length).toBe(1);
         expect(middleCallback.mock.calls.length).toBe(1);
