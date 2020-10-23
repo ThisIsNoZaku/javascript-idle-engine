@@ -1,5 +1,7 @@
 import { PropertyConfiguration } from "./PropertyConfiguration";
 import _ from "lodash";
+import {ValueContainer} from "./ValueContainer";
+import {Engine} from "./Engine";
 
 export class EngineConfiguration {
     public globals:{[name:string]: PropertyConfiguration } = {};
@@ -40,6 +42,13 @@ export class EngineConfiguration {
         }
         this.tickRate = tickRate;
         return this;
+    }
+
+    public static configProperty(startingValue?:any, updater?:(current:any, parent?:ValueContainer, engine?: Engine)=>any){
+        return {
+            startingValue,
+            updater
+        }
     }
 }
 
