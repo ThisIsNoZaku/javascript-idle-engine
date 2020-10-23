@@ -6,6 +6,7 @@ export class Engine {
     public readonly tickRate:string;
     private readonly references:any = [];
     private accumulatedTime:number = 0;
+    private nextReferenceId:number = 0;
     constructor(configuration:EngineConfiguration) {
         if(configuration == undefined) {
             throw new Error("Missing configuration.");
@@ -55,9 +56,9 @@ export class Engine {
         });
     }
 
-    createReference(startingValue?: any, parent?: ValueContainer, updater?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | undefined) {
-        const newRef = new ValueContainer(this.references.length, this, startingValue, parent, updater);
-        this.references.push(newRef);
+    createReference(startingValue: any, parent?: ValueContainer, updater?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | undefined) {
+        const newRef = new ValueContainer(this.nextReferenceId++, this, startingValue, parent, updater);
+        this.references[newRef.id] = newRef;
         return newRef;
     }
 }

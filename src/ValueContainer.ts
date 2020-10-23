@@ -3,7 +3,7 @@ import { Engine } from "./Engine";
 import * as _ from "lodash";
 
 export class ValueContainer implements EventSource{
-    private readonly id:number;
+    public readonly id:number;
     private readonly listeners:any = {};
     private readonly engine:Engine;
     private value:any;
