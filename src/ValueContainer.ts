@@ -58,7 +58,7 @@ export class ValueContainer implements EventSource{
 
     public update(engine: Engine): void{
         if(this.updaterFunction) {
-            this.set(this.updaterFunction(engine, engine.getReference(this.parentContainer), this.value));
+            this.set(this.updaterFunction(this.value, engine.getReference(this.parentContainer), engine));
         }
         if(_.isObject(this.value)) {
             _.isArray(this.value) ? this.value.forEach(av => av.update(engine)) : Object.values(this.value).forEach(av => av.update(engine));
