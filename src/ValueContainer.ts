@@ -15,7 +15,7 @@ export class ValueContainer implements EventSource{
         this.updaterFunction = updaterFunction;
         this.engine = engine;
         if(_.isArray(startingValue)) {
-            this.value = wrapArray(engine, this, <any[]>startingValue);
+            this.value = this.wrapArray(engine, <any[]>startingValue);
         } else if(_.isObject(startingValue)) {
             let containingValue = startingValue;
             this.value = Object.keys(startingValue).reduce((obj:any, key:string) => {
@@ -35,7 +35,7 @@ export class ValueContainer implements EventSource{
         this.notifyListeners("changed", this.value);
     }
 
-    public on(eventName: string, callback: (engine: Engine, arg: any, parent?: ValueContainer) => void): void {
+    public on(eventName: string, callback: (arg: any, parent?: ValueContainer, engine?: Engine) => void): void {
         if(this.listeners[eventName] === undefined) {
             this.listeners[eventName] = [];
         }
@@ -59,25 +59,26 @@ export class ValueContainer implements EventSource{
             _.isArray(this.value) ? this.value.forEach(av => av.update(engine)) : Object.values(this.value).forEach(av => av.update(engine));
         }
     }
-}
 
-function wrapArray(engine:Engine, parent: ValueContainer, array:any[]) {
-    const transformed = array.map(i => engine.createReference(i.startingValue, parent, i.updater));
-    let handler = {
-        set: function (target:any[], propertyOrIndex:string, value:any) {
-            const parsedIndex = Number.parseInt(propertyOrIndex);
-            if(!Number.isNaN(parsedIndex)) {
-                if(target[parsedIndex] instanceof ValueContainer) {
-                    target[parsedIndex].set(value);
+    private wrapArray(engine:Engine, array:any[]) {
+        const transformed = array.map(i => engine.createReference(i.startingValue, this, i.updater));
+        let handler = {
+            set: (target:any[], propertyOrIndex:string, value:any) => {
+                const parsedIndex = Number.parseInt(propertyOrIndex);
+                if(!Number.isNaN(parsedIndex)) {
+                    if(target[parsedIndex] instanceof ValueContainer) {
+                        target[parsedIndex].set(value);
+                    } else {
+                        target[parsedIndex] = engine.createReference(value, this);
+                        target[parsedIndex].on("changed", this.notifyListeners.bind(this, "changed", this.value));
+                    }
                 } else {
-                    target[parsedIndex] = engine.createReference(value, parent);
+                    (<any>target)[propertyOrIndex] = value;
                 }
-            } else {
-                (<any>target)[propertyOrIndex] = value;
+                return true;
             }
-            return true;
-        }
 
-    };
-    return new Proxy<any[]>(transformed, handler);
+        };
+        return new Proxy<any[]>(transformed, handler);
+    }
 }

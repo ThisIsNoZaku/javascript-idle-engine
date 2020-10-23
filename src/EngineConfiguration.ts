@@ -2,7 +2,7 @@ import { PropertyConfiguration } from "./PropertyConfiguration";
 import _ from "lodash";
 
 export class EngineConfiguration {
-    public globals?:{[name:string]: PropertyConfiguration } = {};
+    public globals:{[name:string]: PropertyConfiguration } = {};
     public tickRate?:string = "one-second";
 
     public WithGlobalProperties(globals:{[name:string]: PropertyDeclaration }) {
