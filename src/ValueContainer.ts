@@ -14,14 +14,8 @@ export class ValueContainer implements EventSource{
         this.parentContainer = parentContainer ? parentContainer.id : null;
         this.updaterFunction = updaterFunction;
         this.engine = engine;
-        if(_.isArray(startingValue)) {
-            this.value = this.wrapArray(engine, <any[]>startingValue);
-        } else if(_.isObject(startingValue)) {
-            let containingValue = startingValue;
-            this.value = Object.keys(startingValue).reduce((obj:any, key:string) => {
-                obj[key] = engine.createReference((<any>containingValue)[key].startingValue, this, (<any>containingValue)[key].updater);
-                return obj;
-            }, {});
+        if(_.isObject(startingValue)) {
+            this.value = this.wrapObject(engine, <any[]>startingValue);
         } else {
             this.value = startingValue;
         }
@@ -60,12 +54,19 @@ export class ValueContainer implements EventSource{
         }
     }
 
-    private wrapArray(engine:Engine, array:any[]) {
-        const transformed = array.map(i => engine.createReference(i.startingValue, this, i.updater));
+    private static unwrappedProperties:string[] = [];
+
+    private wrapObject(engine:Engine, value:any) {
+        const transformed = _.isArray(value) ? value.map(i => engine.createReference(i.startingValue, this, i.updater)) :
+            Object.keys(value).reduce((mapped:{[property:string]: ValueContainer}, property)=>{
+                mapped[property] = engine.createReference(value[property].startingValue, this, value[property].updater);
+                mapped[property].on("changed", this.notifyListeners.bind(this, "changed", this.value));
+                return mapped;
+            }, {});
         let handler = {
-            set: (target:any[], propertyOrIndex:string, value:any) => {
+            set: (target:any, propertyOrIndex:string, value:any) => {
                 const parsedIndex = Number.parseInt(propertyOrIndex);
-                if(!Number.isNaN(parsedIndex)) {
+                if(!ValueContainer.unwrappedProperties.includes(propertyOrIndex)) {
                     if(target[parsedIndex] instanceof ValueContainer) {
                         target[parsedIndex].set(value);
                     } else {
@@ -80,6 +81,6 @@ export class ValueContainer implements EventSource{
             }
 
         };
-        return new Proxy<any[]>(transformed, handler);
+        return new Proxy<any>(transformed, handler);
     }
 }

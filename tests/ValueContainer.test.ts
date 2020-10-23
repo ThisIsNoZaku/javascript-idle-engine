@@ -15,7 +15,7 @@ describe("ValueContainer", function () {
             string: {startingValue:"string"},
             number: {startingValue: 1},
             boolean: {startingValue: true}
-        }, null, null);
+        });
         expect(ref.get().string.get()).toEqual("string");
         expect(ref.get().number.get()).toEqual(1);
         expect(ref.get().boolean.get()).toEqual(true);
@@ -28,9 +28,13 @@ describe("ValueContainer", function () {
         ref.set("new");
         expect.hasAssertions();
     });
-    it("can defined an updater function which modifies its value each tick", function () {
-        const ref = new ValueContainer(1,<Engine>(<unknown>null), "string", null, null);
-    });
+    it("setting a property on an object notifies the object's listeners", function () {
+        const ref = new ValueContainer(1, engine, {});
+        const changeCallback = jest.fn();
+        ref.on("changed", changeCallback);
+        ref.get().foo = 123;
+        expect(changeCallback.mock.calls.length).toBe(1);
+    })
 
 });
 
