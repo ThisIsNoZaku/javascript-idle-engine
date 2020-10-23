@@ -71,6 +71,7 @@ export class ValueContainer implements EventSource{
                     } else {
                         target[parsedIndex] = engine.createReference(value, this);
                         target[parsedIndex].on("changed", this.notifyListeners.bind(this, "changed", this.value));
+                        this.notifyListeners("changed", this.value);
                     }
                 } else {
                     (<any>target)[propertyOrIndex] = value;
