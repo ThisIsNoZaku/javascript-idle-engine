@@ -10,6 +10,7 @@ export class ValueContainer implements EventSource{
     private readonly parentContainer:number | null;
     private readonly updaterFunction?: ((engine: Engine, parent:ValueContainer | null, previous:any) => any) | null;
     public constructor(id:number, engine: Engine, startingValue: any, parentContainer?:ValueContainer | null, updaterFunction?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | null ) {
+        this.id = id;
         this.parentContainer = parentContainer ? parentContainer.id : null;
         this.updaterFunction = updaterFunction;
         this.engine = engine;
@@ -24,7 +25,6 @@ export class ValueContainer implements EventSource{
         } else {
             this.value = startingValue;
         }
-        this.id = id;
     }
     public get() {
         return this.value;
