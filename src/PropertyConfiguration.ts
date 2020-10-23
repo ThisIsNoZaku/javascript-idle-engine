@@ -7,5 +7,5 @@ const expectedProperties = [
 ]
 export interface PropertyConfiguration {
     startingValue?: any;
-    updater?: ((engine: Engine, parent: (ValueContainer | null), current: any) => any);
+    updater?: ((current: any, parent?: ValueContainer, engine?: Engine) => any);
 }

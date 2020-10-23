@@ -1,18 +1,20 @@
-import { ValueContainer } from "../src/ValueContainer";
-import { Engine } from "../src/Engine";
+import {ValueContainer} from "../src/ValueContainer";
+import {Engine} from "../src/Engine";
 import {EngineConfiguration} from "../src";
 import instantiate = WebAssembly.instantiate;
+import * as ts from "typescript/lib/tsserverlibrary";
+import emptyArray = ts.server.emptyArray;
 
 describe("ValueContainer", function () {
-    let engine:Engine;
-    beforeEach(() => engine= new Engine(new EngineConfiguration()));
+    let engine: Engine;
+    beforeEach(() => engine = new Engine(new EngineConfiguration()));
     it("wraps a value", function () {
-        const ref = new ValueContainer(1, <Engine>(<unknown>null),"string", null, null);
+        const ref = new ValueContainer(1, <Engine>(<unknown>null), "string", null, null);
         expect(ref.get()).toEqual("string");
     });
     it("wraps all child values in an container", function () {
         const ref = new ValueContainer(1, engine, {
-            string: {startingValue:"string"},
+            string: {startingValue: "string"},
             number: {startingValue: 1},
             boolean: {startingValue: true}
         });
@@ -22,7 +24,7 @@ describe("ValueContainer", function () {
     });
     it("can be subscribed to", function () {
         const ref = new ValueContainer(1, engine, "string", null, null);
-        ref.on("changed", function (engine, arg) {
+        ref.on("changed", function (arg) {
             expect(arg).toEqual("new");
         });
         ref.set("new");
@@ -40,9 +42,17 @@ describe("ValueContainer", function () {
 
 describe("array ValueContainer", function () {
 
-    let engine:Engine;
-    beforeEach(() => engine= new Engine(new EngineConfiguration()));
-    it("does not replace an array value with an object", function() {
+    let engine: Engine;
+    beforeEach(() => engine = new Engine(new EngineConfiguration()
+        .WithGlobalProperties({
+                top: EngineConfiguration.configProperty({
+                    middle: {
+                        bottom: {}
+                    }
+                })
+            }
+        )));
+    it("does not replace an array value with an object", function () {
         const ref = engine.createReference([]);
         expect(ref.get()).toEqual([]);
     });
@@ -64,10 +74,16 @@ describe("array ValueContainer", function () {
         expect(ref.get()[0] === original).toBeTruthy();
     });
     it("inserting into an array notifies array listeners", function () {
-        const ref = engine.createReference([]);
-        const callback = jest.fn();
-        ref.on("changed", callback);
-        ref.get()[0] = 123;
-        expect(callback.mock.calls.length).toBe(1);
-    })
+        const topCallback = jest.fn();
+        const middleCallback = jest.fn();
+        const bottomCallback = jest.fn();
+        engine.globals.top.on("changed", topCallback);
+        engine.globals.top.get().middle.on("changed", middleCallback);
+        engine.globals.top.get().middle.get().bottom.on("changed", bottomCallback);
+        engine.globals.top.get().middle.get().bottom.set(123);
+
+        expect(bottomCallback.mock.calls.length).toBe(1);
+        expect(middleCallback.mock.calls.length).toBe(1);
+        expect(topCallback.mock.calls.length).toBe(1);
+    });
 });

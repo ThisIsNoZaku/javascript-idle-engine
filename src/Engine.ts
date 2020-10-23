@@ -56,7 +56,7 @@ export class Engine {
         });
     }
 
-    createReference(startingValue: any, parent?: ValueContainer, updater?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | undefined) {
+    createReference(startingValue?: any, parent?: ValueContainer, updater?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | undefined) {
         const newRef = new ValueContainer(this.nextReferenceId++, this, startingValue, parent, updater);
         this.references[newRef.id] = newRef;
         return newRef;

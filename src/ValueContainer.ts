@@ -4,7 +4,9 @@ import * as _ from "lodash";
 
 export class ValueContainer implements EventSource{
     public readonly id:number;
-    private readonly listeners:any = {};
+    private readonly listeners:{
+        [eventName:string]: Array<(current?:any, parent?:ValueContainer, engine?: Engine ) => any>
+    } = {};
     private readonly engine:Engine;
     private value:any;
     private readonly parentContainer:number | null;
@@ -29,7 +31,7 @@ export class ValueContainer implements EventSource{
         this.notifyListeners("changed", this.value);
     }
 
-    public on(eventName: string, callback: (arg: any, parent?: ValueContainer, engine?: Engine) => void): void {
+    public on(eventName: string, callback: (arg?: any, parent?: ValueContainer, engine?: Engine) => void): void {
         if(this.listeners[eventName] === undefined) {
             this.listeners[eventName] = [];
         }
@@ -39,8 +41,8 @@ export class ValueContainer implements EventSource{
     private notifyListeners(event:string, arg: any) {
         const eventListeners = this.listeners[event];
         if(eventListeners) {
-            eventListeners.forEach((listener:(engine: Engine, arg:any, parent:ValueContainer | null) => void) => {
-               listener(this.engine, arg, this.engine.getReference(this.parentContainer));
+            eventListeners.forEach((listener:(arg?:any, parent?:ValueContainer, engine?: Engine) => void) => {
+               listener(arg, this.engine.getReference(this.parentContainer), this.engine);
             });
         }
     }
