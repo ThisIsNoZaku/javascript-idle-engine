@@ -31,11 +31,20 @@ export class ValueContainer implements EventSource{
         this.notifyListeners("changed", this.value);
     }
 
-    public on(eventName: string, callback: (arg?: any, parent?: ValueContainer, engine?: Engine) => void): void {
+    public on(eventName: string, callback: (arg?: any, parent?: ValueContainer, engine?: Engine) => void): any {
         if(this.listeners[eventName] === undefined) {
             this.listeners[eventName] = [];
         }
         this.listeners[eventName].push(callback);
+        return {
+            unsubscribe: () => {
+                this.removeListener(eventName, callback);
+            }
+        }
+    }
+
+    private removeListener(eventName:string, callback: (arg?: any, parent?: ValueContainer, engine?: Engine) => void): void {
+        this.listeners[eventName] = this.listeners[eventName].filter(cb => cb != callback);
     }
 
     private notifyListeners(event:string, arg: any) {
