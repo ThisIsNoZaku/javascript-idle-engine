@@ -61,12 +61,12 @@ export class ValueContainer implements EventSource{
     private wrapObject(engine:Engine, value:any) {
         const transformed = _.isArray(value) ? value.map(i => {
             const newRef = engine.createReference(i.startingValue, this, i.updater);
-            newRef.on("changed", this.notifyListeners.bind(this, "changed", this.value))
+            newRef.on("changed", ()=> this.notifyListeners("changed", this.value))
             return newRef;
             }) :
             Object.keys(value).reduce((mapped:{[property:string]: ValueContainer}, property)=>{
                 mapped[property] = engine.createReference(value[property].startingValue, this, value[property].updater);
-                mapped[property].on("changed", this.notifyListeners.bind(this, "changed", this.value));
+                mapped[property].on("changed", ()=> this.notifyListeners("changed", this.value));
                 return mapped;
             }, {});
         let handler = {
