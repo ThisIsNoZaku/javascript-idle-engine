@@ -80,13 +80,12 @@ export class ValueContainer implements EventSource{
             }, {});
         let handler = {
             set: (target:any, propertyOrIndex:string, value:any) => {
-                const parsedIndex = Number.parseInt(propertyOrIndex);
                 if(!ValueContainer.unwrappedProperties.includes(propertyOrIndex)) {
-                    if(target[parsedIndex] instanceof ValueContainer) {
-                        target[parsedIndex].set(value);
+                    if(target[propertyOrIndex] instanceof ValueContainer) {
+                        target[propertyOrIndex].set(value);
                     } else {
-                        target[parsedIndex] = engine.createReference(value, this);
-                        target[parsedIndex].on("changed", this.notifyListeners.bind(this, "changed", this.value));
+                        target[propertyOrIndex] = engine.createReference(value, this);
+                        target[propertyOrIndex].on("changed", this.notifyListeners.bind(this, "changed", this.value));
                         this.notifyListeners("changed", this.value);
                     }
                 } else {
