@@ -65,7 +65,7 @@ export class ValueContainer implements EventSource{
         }
     }
 
-    private static unwrappedProperties:string[] = [];
+    private static unwrappedProperties:string[] = ["length"];
 
     private wrapObject(engine:Engine, value:any) {
         const transformed = _.isArray(value) ? value.map(i => {
