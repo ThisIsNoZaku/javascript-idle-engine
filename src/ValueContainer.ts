@@ -2,20 +2,20 @@ import EventSource from "./EventSource";
 import { Engine } from "./Engine";
 import * as _ from "lodash";
 
-export class ValueContainer implements EventSource{
+export class ValueContainer implements EventSource {
+    [index: number] : any;
+    [property: string] : any;
     public readonly id:number;
     private readonly listeners:{
         [eventName:string]: Array<(current?:any, parent?:ValueContainer, engine?: Engine ) => any>
     } = {};
-    private readonly engine:Engine;
     private value:any;
     private readonly parentContainer:number | null;
     private readonly updaterFunction?: ((engine: Engine, parent:ValueContainer | null, previous:any) => any) | null;
-    public constructor(id:number, engine: Engine, startingValue: any, parentContainer?:ValueContainer | null, updaterFunction?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | null ) {
+    public constructor(id:number, engine:Engine, startingValue: any, parentContainer?:ValueContainer | null, updaterFunction?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | null ) {
         this.id = id;
         this.parentContainer = parentContainer ? parentContainer.id : null;
         this.updaterFunction = updaterFunction;
-        this.engine = engine;
         if(_.isObject(startingValue)) {
             this.value = this.wrapObject(engine, <any[]>startingValue);
         } else {
