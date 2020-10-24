@@ -16,7 +16,7 @@ function build() {
 exports.build = build;
 
 function clean(cb) {
-    return del(['dist'], cb);
+    return del(['dist', 'src/**/*.js', 'tests/**/*.js'], cb);
 }
 exports.clean = clean;
 exports.default = series(clean, build);
