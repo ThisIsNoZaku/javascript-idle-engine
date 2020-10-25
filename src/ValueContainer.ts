@@ -53,23 +53,19 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
     } else {
         container.value = configuration.startingValue;
     }
-    container[updaterSymbol] = configuration.updater;
+    container[updaterSymbol] = () => {
+        if(configuration!.updater) {
+            container.value = container.updater(container.value, parent, engine);
+        }
+        if(_.isObject(container.value)) {
+            Object.values(container.value).forEach((child:any) => child[updaterSymbol]());
+        }
+    }
 
     const handler = {
         get: function (target: any, prop: string | number, receiver: any) {
             if (_.isSymbol(prop)) {
-                if(prop === updaterSymbol) {
-                    return () => {
-                        const updaterFunction = container[prop]
-                        if (updaterFunction) {
-                            container.value = updaterFunction(container.value, engine.getReference(parent), engine);
-                            callListeners(container, "changed", engine)(container.value);
-                        }
-                        if (_.isObject(container.value)) {
-                            Object.values(container.value).forEach((child: any) => child[updaterSymbol]())
-                        }
-                    }
-                }
+                return container[updaterSymbol]
             }
             if (interceptedMethods.includes(prop)) {
                 switch (prop) {
