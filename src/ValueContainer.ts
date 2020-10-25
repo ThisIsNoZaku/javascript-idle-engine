@@ -1,100 +1,108 @@
 import EventSource from "./EventSource";
-import { Engine } from "./Engine";
+import {Engine} from "./Engine";
 import * as _ from "lodash";
+import {PropertyConfiguration} from "./PropertyConfiguration";
 
-export class ValueContainer implements EventSource {
-    [index: number] : any;
-    [property: string] : any;
-    public readonly id:number;
-    private readonly listeners:{
-        [eventName:string]: Array<(current?:any, parent?:ValueContainer, engine?: Engine ) => any>
-    } = {};
-    private value:any;
-    private readonly parentContainer:number | null;
-    private readonly updaterFunction?: ((engine: Engine, parent:ValueContainer | null, previous:any) => any) | null;
-    public constructor(id:number, engine:Engine, startingValue: any, parentContainer?:ValueContainer | null, updaterFunction?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | null ) {
-        this.id = id;
-        this.parentContainer = parentContainer ? parentContainer.id : null;
-        this.updaterFunction = updaterFunction;
-        if(_.isObject(startingValue)) {
-            this.value = this.wrapObject(engine, <any[]>startingValue);
-        } else {
-            this.value = startingValue;
-        }
-    }
-    public get() {
-        return this.value;
-    }
-    public set(value:any) {
-        // TODO: Logging for when the type of the value changes to help debugging.
-        this.value = value;
-        this.notifyListeners("changed", this.value);
-    }
+export const reservedPropertyNames: any[] = ["set", "get", "on", "valueOf", "startingValue"];
+const interceptedMethods:any[] = ["set", "get", "on", "push"];
+export const listenersSymbol = Symbol.for("updaters");
+export const referenceIdSymbol = Symbol.for("id");
 
-    public on(eventName: string, callback: (arg?: any, parent?: ValueContainer, engine?: Engine) => void): any {
-        if(this.listeners[eventName] === undefined) {
-            this.listeners[eventName] = [];
-        }
-        this.listeners[eventName].push(callback);
-        return {
-            unsubscribe: () => {
-                this.removeListener(eventName, callback);
+function callListeners(container:any, eventName:string, engine:Engine) {
+    return (arg:any) => {
+        const allListeners = container[listenersSymbol];
+        if(allListeners) {
+            const actionListeners = allListeners[eventName];
+            if(actionListeners) {
+                actionListeners.forEach((listener:any) => {
+                    listener(arg, container, engine);
+                })
             }
         }
+
+
     }
+}
 
-    private removeListener(eventName:string, callback: (arg?: any, parent?: ValueContainer, engine?: Engine) => void): void {
-        this.listeners[eventName] = this.listeners[eventName].filter(cb => cb != callback);
-    }
-
-    private notifyListeners(event:string, arg: any) {
-        const eventListeners = this.listeners[event];
-        if(eventListeners) {
-            eventListeners.forEach((listener:(arg?:any, parent?:ValueContainer, engine?: Engine) => void) => {
-               listener(arg, this.engine.getReference(this.parentContainer), this.engine);
-            });
-        }
-    }
-
-    public update(engine: Engine): void{
-        if(this.updaterFunction) {
-            this.set(this.updaterFunction(this.value, engine.getReference(this.parentContainer), engine));
-        }
-        if(_.isObject(this.value)) {
-            _.isArray(this.value) ? this.value.forEach(av => av.update(engine)) : Object.values(this.value).forEach(av => av.update(engine));
-        }
-    }
-
-    private static unwrappedProperties:string[] = ["length"];
-
-    private wrapObject(engine:Engine, value:any) {
-        const transformed = _.isArray(value) ? value.map(i => {
-            const newRef = engine.createReference(i.startingValue, this, i.updater);
-            newRef.on("changed", ()=> this.notifyListeners("changed", this.value))
-            return newRef;
-            }) :
-            Object.keys(value).reduce((mapped:{[property:string]: ValueContainer}, property)=>{
-                mapped[property] = engine.createReference(value[property].startingValue, this, value[property].updater);
-                mapped[property].on("changed", ()=> this.notifyListeners("changed", this.value));
-                return mapped;
-            }, {});
-        let handler = {
-            set: (target:any, propertyOrIndex:string, value:any) => {
-                if(!ValueContainer.unwrappedProperties.includes(propertyOrIndex)) {
-                    if(target[propertyOrIndex] instanceof ValueContainer) {
-                        target[propertyOrIndex].set(value);
-                    } else {
-                        target[propertyOrIndex] = engine.createReference(value, this);
-                        target[propertyOrIndex].on("changed", this.notifyListeners.bind(this, "changed", this.value));
-                        this.notifyListeners("changed", this.value);
-                    }
-                } else {
-                    (<any>target)[propertyOrIndex] = value;
-                }
-                return true;
-            }
-
+export function ValueContainer(id: number, engine: Engine, configuration?: PropertyConfiguration, parent?: any) {
+    if (!configuration) {
+        configuration = {
+            startingValue: null
         };
-        return new Proxy<any>(transformed, handler);
     }
+    let container: any = {};
+    if (_.isObject(configuration.startingValue)) {
+        reservedPropertyNames.forEach(reserved => {
+            if (Object.keys(configuration!.startingValue).includes(reserved)) {
+                throw new Error(`${reserved} is a reserved property and cannot be defined in an object.`);
+            }
+        });
+        if (_.isArray(configuration.startingValue)) {
+            container.value = [];
+            configuration.startingValue.forEach(i => {
+                const childReference = engine.createReference(i, container.value);
+                childReference.on("changed", callListeners(container, "changed", engine).bind(container.value));
+                container.value.push(childReference);
+            })
+        } else {
+            container.value = Object.keys(configuration.startingValue).reduce((wrapped: any, prop: string) => {
+                wrapped[prop] = engine.createReference(configuration!.startingValue[prop], id);
+                wrapped[prop].on("changed", callListeners(container, "changed", engine).bind(container.value));
+                return wrapped;
+            }, {})
+        }
+    } else {
+        container.value = configuration.startingValue;
+    }
+
+    const handler = {
+        get: function (target: any, prop: string | number, receiver: any) {
+            if (interceptedMethods.includes(prop)) {
+                switch (prop) {
+                    case "set":
+                        return (value: any) => {
+                            container.value = value;
+                            callListeners(container, "changed", engine)(container.value);
+                        }
+                    case "get":
+                        return () => {
+                            return container.value;
+                        }
+                    case "on":
+                        return (event: string, listener: (value: any, parent?: any, engine?: Engine) => void) => {
+                            let allListeners = target[listenersSymbol];
+                            if (!allListeners) {
+                                allListeners = {};
+                                target[listenersSymbol] = allListeners;
+                            }
+                            let eventListeners = allListeners[event];
+                            if (!eventListeners) {
+                                eventListeners = [];
+                                allListeners[event] = eventListeners;
+                            }
+                            eventListeners.push(listener);
+                        }
+                    case "push":
+                        return (value:any) => {
+                            container.value.push(engine.createReference({
+                                startingValue: value
+                            }, target));
+                        }
+                }
+            }
+            if(container.value === undefined) {
+                container.value = {};
+            }
+            if(container.value[prop] === undefined) {
+                const newChild = engine.createReference({}, container.value);
+                newChild.on("changed", callListeners( container, "changed", engine))
+                container.value[prop] = newChild;
+            }
+            return container.value[prop];
+        }
+    };
+
+    container[listenersSymbol] = configuration.updater;
+    container[referenceIdSymbol] = id;
+    return new Proxy(container, handler);
 }

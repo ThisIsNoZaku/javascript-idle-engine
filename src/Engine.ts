@@ -1,5 +1,6 @@
 import { EngineConfiguration } from "./EngineConfiguration";
 import { ValueContainer } from "./ValueContainer";
+import {PropertyConfiguration} from "./PropertyConfiguration";
 
 export class Engine {
     public readonly globals:any;
@@ -7,6 +8,7 @@ export class Engine {
     private readonly references:any = [];
     private accumulatedTime:number = 0;
     private nextReferenceId:number = 0;
+    static EngineSymbol: symbol = Symbol("Engine");
     constructor(configuration:EngineConfiguration) {
         if(configuration == undefined) {
             throw new Error("Missing configuration.");
@@ -19,12 +21,7 @@ export class Engine {
         if(!globals) {
             return {};
         }
-        return Object.keys(globals).reduce((mapped: {[key:string]: any}, nextKey: string) => {
-            const configuration = globals[nextKey];
-            const newContainer = this.createReference(configuration.startingValue, undefined, configuration.updater);
-            mapped[nextKey] =  newContainer;
-            return mapped;
-        }, {});
+        return this.createReference({startingValue: globals});
     }
 
     public start() {
@@ -56,9 +53,10 @@ export class Engine {
         });
     }
 
-    createReference(startingValue?: any, parent?: ValueContainer, updater?: ((current: any, parent: ValueContainer | null, engine: Engine) => any) | undefined) {
-        const newRef = new ValueContainer(this.nextReferenceId++, this, startingValue, parent, updater);
-        this.references[newRef.id] = newRef;
+    createReference(fromConfiguration: PropertyConfiguration, parent?: number) {
+        const usedId = this.nextReferenceId++
+        const newRef = ValueContainer(usedId, this, fromConfiguration, parent);
+        this.references[usedId] = newRef;
         return newRef;
     }
 }

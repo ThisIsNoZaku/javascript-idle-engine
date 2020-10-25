@@ -1,13 +1,13 @@
 import { PropertyConfiguration } from "./PropertyConfiguration";
 import _ from "lodash";
-import {ValueContainer} from "./ValueContainer";
+import {reservedPropertyNames} from "./ValueContainer";
 import {Engine} from "./Engine";
 
 export class EngineConfiguration {
     public globals:{[name:string]: PropertyConfiguration } = {};
     public tickRate?:string = "one-second";
 
-    public WithGlobalProperties(globals:{[name:string]: PropertyDeclaration }) {
+    public WithGlobalProperties(globals:{[name:string]: any }) {
         this.globals = Object.keys(globals).reduce((transformed: { [key:string]: PropertyConfiguration }, key) => {
             transformed[key] = this.transformToConfiguration(globals[key]);
             return transformed;
@@ -15,19 +15,23 @@ export class EngineConfiguration {
         return this;
     }
 
-    private transformToConfiguration(declaration: PropertyDeclaration) {
-        const config: any = _.isObject(declaration) && !_.isArray(declaration) ? <PropertyConfiguration>declaration : {
-            startingValue: declaration
-        };
-        if(_.isArray(config.startingValue)) {
-            config.startingValue = _.isArray(config.startingValue) ? config.startingValue.map(((i: any) => this.transformToConfiguration(i))) : config.startingValue
-        } else if (_.isObject(config.startingValue)) {
-            config.startingValue = Object.keys(config.startingValue).reduce((transformed: any, key:string) => {
-                transformed[key] = this.transformToConfiguration(config.startingValue[key])
-                return transformed;
-            }, {});
+    private transformToConfiguration(configuration: any) {
+        if(!(configuration instanceof PropertyConfiguration)) {
+            if (_.isArray(configuration)) {
+                configuration = new PropertyConfiguration(configuration.map(d => this.transformToConfiguration(d)));
+            } else if (_.isObject(configuration)) {
+                configuration = new PropertyConfiguration(Object.keys(configuration).reduce((transformed: any, key: string) => {
+                    if(reservedPropertyNames.includes(key)) {
+                        throw new Error(`${key} is a reserved keyword and not allowed as a property name`);
+                    }
+                    transformed[key] = this.transformToConfiguration(configuration[key])
+                    return transformed;
+                }, {}));
+            } else {
+                configuration = new PropertyConfiguration(configuration);
+            }
         }
-        return config;
+        return configuration;
     }
 
     public WithTickRate(tickRate: string) {
@@ -44,7 +48,7 @@ export class EngineConfiguration {
         return this;
     }
 
-    public static configProperty(startingValue?:any, updater?:(current:any, parent?:ValueContainer, engine?: Engine)=>any): PropertyConfiguration{
+    public static configProperty(startingValue?:any, updater?:(current:any, parent?:any, engine?: Engine)=>any): PropertyConfiguration{
         if(_.isObject(startingValue)) {
             if(startingValue instanceof PropertyConfiguration) {
                 return startingValue as PropertyConfiguration;
@@ -57,5 +61,3 @@ export class EngineConfiguration {
         return new PropertyConfiguration(startingValue, updater);
     }
 }
-
-type PropertyDeclaration = PropertyConfiguration | string | number | boolean | PropertyDeclaration[];
