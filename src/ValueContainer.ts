@@ -4,19 +4,19 @@ import * as _ from "lodash";
 import {PropertyConfiguration} from "./PropertyConfiguration";
 
 export const reservedPropertyNames: any[] = ["set", "get", "on", "valueOf", "startingValue"];
-const interceptedMethods:any[] = ["set", "get", "on", "push"];
+const interceptedMethods: any[] = ["set", "get", "on", "push"];
 export const listenersSymbol = Symbol.for("listeners");
 export const referenceIdSymbol = Symbol.for("id");
 export const updaterSymbol = Symbol.for("update");
 
-function callListeners(container:any, eventName:string, engine:Engine) {
-    return (arg:any) => {
+function callListeners(container: any, eventName: string, engine: Engine) {
+    return (arg: any) => {
         const allListeners = container[listenersSymbol];
-        if(allListeners) {
+        if (allListeners) {
             const actionListeners = allListeners[eventName];
-            if(actionListeners) {
-                actionListeners.forEach((listener:any) => {
-                    listener(arg, container, engine);
+            if (actionListeners) {
+                actionListeners.forEach((listener: any) => {
+                    listener(container.value, container, engine);
                 })
             }
         }
@@ -57,15 +57,15 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
 
     const handler = {
         get: function (target: any, prop: string | number, receiver: any) {
-            if(_.isSymbol(prop)) {
-                return ()=>{
+            if (_.isSymbol(prop)) {
+                return () => {
                     const updaterFunction = container[prop]
-                    if(updaterFunction) {
+                    if (updaterFunction) {
                         container.value = updaterFunction(container.value, engine.getReference(parent), engine);
                         callListeners(container, "changed", engine)(container.value);
                     }
-                    if(_.isObject(container.value)) {
-                        Object.values(container.value).forEach((child:any) => child[updaterSymbol]())
+                    if (_.isObject(container.value)) {
+                        Object.values(container.value).forEach((child: any) => child[updaterSymbol]())
                     }
                 }
             }
@@ -95,7 +95,7 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                             eventListeners.push(listener);
                         }
                     case "push":
-                        if(container.value && container.value.push) {
+                        if (container.value && container.value.push) {
                             return (value: any) => {
                                 container.value.push(engine.createReference({
                                     startingValue: value
@@ -106,12 +106,12 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                         }
                 }
             }
-            if(container.value === undefined) {
+            if (container.value === undefined) {
                 container.value = {};
             }
-            if(container.value[prop] === undefined) {
+            if (container.value[prop] === undefined) {
                 const newChild = engine.createReference({}, container.value);
-                newChild.on("changed", callListeners( container, "changed", engine))
+                newChild.on("changed", callListeners(container, "changed", engine))
                 container.value[prop] = newChild;
             }
 

@@ -1,10 +1,7 @@
 import {ValueContainer} from "../src/ValueContainer";
 import {Engine} from "../src/Engine";
 import {EngineConfiguration} from "../src";
-import instantiate = WebAssembly.instantiate;
 import * as ts from "typescript/lib/tsserverlibrary";
-import emptyArray = ts.server.emptyArray;
-import tryConvertScriptKindName = ts.server.tryConvertScriptKindName;
 
 describe("ValueContainer", function () {
     let engine: Engine;
@@ -104,6 +101,7 @@ describe("array ValueContainer", function () {
         engine.globals.top.middle.get().bottom.on("changed", bottomCallback);
         engine.globals.top.middle.bottom.set(123);
 
+        // FIXME: Find a way to test arguments are correct. The ValueContainer proxy causes problems with asserting.
         expect(bottomCallback.mock.calls.length).toBe(1);
         expect(middleCallback.mock.calls.length).toBe(1);
         expect(topCallback.mock.calls.length).toBe(1);
