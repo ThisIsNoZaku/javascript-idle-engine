@@ -58,14 +58,16 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
     const handler = {
         get: function (target: any, prop: string | number, receiver: any) {
             if (_.isSymbol(prop)) {
-                return () => {
-                    const updaterFunction = container[prop]
-                    if (updaterFunction) {
-                        container.value = updaterFunction(container.value, engine.getReference(parent), engine);
-                        callListeners(container, "changed", engine)(container.value);
-                    }
-                    if (_.isObject(container.value)) {
-                        Object.values(container.value).forEach((child: any) => child[updaterSymbol]())
+                if(prop === updaterSymbol) {
+                    return () => {
+                        const updaterFunction = container[prop]
+                        if (updaterFunction) {
+                            container.value = updaterFunction(container.value, engine.getReference(parent), engine);
+                            callListeners(container, "changed", engine)(container.value);
+                        }
+                        if (_.isObject(container.value)) {
+                            Object.values(container.value).forEach((child: any) => child[updaterSymbol]())
+                        }
                     }
                 }
             }
