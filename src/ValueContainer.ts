@@ -81,7 +81,7 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                             return container.value;
                         }
                     case "on":
-                        return (event: string, listener: (value: any, parent?: any, engine?: Engine) => void) => {
+                        return (event: string, listener: (value: any, parent?: any, engine?: Engine) => void) => { // FIXME: Define a type for these updater/listener functions.
                             let allListeners = target[listenersSymbol];
                             if (!allListeners) {
                                 allListeners = {};
@@ -93,6 +93,11 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                                 allListeners[event] = eventListeners;
                             }
                             eventListeners.push(listener);
+                            return {
+                                unsubscribe: () => {
+                                    allListeners[event] = eventListeners.filter((addedListener: (value: any, parent?: any, engine?: Engine) => void) => addedListener != listener)
+                                }
+                            }
                         }
                     case "push":
                         if (container.value && container.value.push) {
