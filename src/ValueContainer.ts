@@ -64,6 +64,7 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                         }
                         if(configuration!.updater) {
                             container.value = configuration!.updater(container.value, engine.getReference(parentId), engine);
+                            callListeners(container, "changed", engine)(container.value);
                         }
                     }
                 }
