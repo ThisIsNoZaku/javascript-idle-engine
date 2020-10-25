@@ -46,6 +46,14 @@ describe("ValueContainer", function () {
         ref.set("new");
         expect.hasAssertions();
     });
+    it("subscriptions to the container can be removed", function () {
+        const ref = ValueContainer(1, engine, {startingValue: "string"});
+        const changeCallback = jest.fn();
+        const subscription = ref.on("changed", changeCallback);
+        subscription.unsubscribe();
+        ref.set(123);
+        expect(changeCallback).not.toHaveBeenCalled();
+    })
     it("setting a property on an object notifies the object's listeners", function () {
         const ref = ValueContainer(1, engine, {});
         const changeCallback = jest.fn();
