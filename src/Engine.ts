@@ -1,5 +1,5 @@
 import { EngineConfiguration } from "./EngineConfiguration";
-import { ValueContainer } from "./ValueContainer";
+import {updaterSymbol, ValueContainer} from "./ValueContainer";
 import {PropertyConfiguration} from "./PropertyConfiguration";
 
 export class Engine {
@@ -46,10 +46,9 @@ export class Engine {
         }
     }
 
-    private tick(interval: number) {
-        console.log("Tick");
-        Object.keys(this.globals).forEach(property => {
-            this.globals[property].update(this, interval);
+    public tick(interval: number) {
+        Object.keys(this.globals.get()).forEach(property => {
+            this.globals[property][updaterSymbol](this, interval);
         });
     }
 

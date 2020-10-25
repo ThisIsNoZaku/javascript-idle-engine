@@ -32,6 +32,9 @@ describe("the engine", function () {
         expect(engine.globals.string.get()).toEqual("newString");
         expect(originalValue).toBe(engine.globals.string);
     });
+    it("calls update on all reference each tick", function () {
+        expect(() => engine.tick(1000)).not.toThrow();
+    })
 });
 
 describe("Configuring global properties", function () {

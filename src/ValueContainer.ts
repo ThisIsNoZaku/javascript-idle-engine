@@ -5,8 +5,9 @@ import {PropertyConfiguration} from "./PropertyConfiguration";
 
 export const reservedPropertyNames: any[] = ["set", "get", "on", "valueOf", "startingValue"];
 const interceptedMethods:any[] = ["set", "get", "on", "push"];
-export const listenersSymbol = Symbol.for("updaters");
+export const listenersSymbol = Symbol.for("listeners");
 export const referenceIdSymbol = Symbol.for("id");
+export const updaterSymbol = Symbol.for("update");
 
 function callListeners(container:any, eventName:string, engine:Engine) {
     return (arg:any) => {
@@ -19,8 +20,6 @@ function callListeners(container:any, eventName:string, engine:Engine) {
                 })
             }
         }
-
-
     }
 }
 
@@ -54,9 +53,22 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
     } else {
         container.value = configuration.startingValue;
     }
+    container[updaterSymbol] = configuration.updater;
 
     const handler = {
         get: function (target: any, prop: string | number, receiver: any) {
+            if(_.isSymbol(prop)) {
+                return ()=>{
+                    const updaterFunction = container[prop]
+                    if(updaterFunction) {
+                        container.value = updaterFunction(container.value, parent, engine);
+                        callListeners(container, "changed", engine)(container.value);
+                    }
+                    if(_.isObject(container.value)) {
+                        Object.values(container.value).forEach((child:any) => child[updaterSymbol]())
+                    }
+                }
+            }
             if (interceptedMethods.includes(prop)) {
                 switch (prop) {
                     case "set":
@@ -83,10 +95,14 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                             eventListeners.push(listener);
                         }
                     case "push":
-                        return (value:any) => {
-                            container.value.push(engine.createReference({
-                                startingValue: value
-                            }, target));
+                        if(container.value && container.value.push) {
+                            return (value: any) => {
+                                container.value.push(engine.createReference({
+                                    startingValue: value
+                                }, target));
+                            }
+                        } else {
+                            return undefined; // Don't return the function if the value doesn't define it.
                         }
                 }
             }
@@ -98,6 +114,7 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                 newChild.on("changed", callListeners( container, "changed", engine))
                 container.value[prop] = newChild;
             }
+
             return container.value[prop];
         }
     };
