@@ -71,6 +71,8 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                             callListeners(container, "changed", engine)(container.value);
                         }
                     }
+                } else if (prop == Symbol.toPrimitive) {
+                    return container.value.toPrimitive();
                 }
                 return container[updaterSymbol]
             }
