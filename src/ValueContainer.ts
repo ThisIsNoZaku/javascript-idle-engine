@@ -53,18 +53,20 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
     } else {
         container.value = configuration.startingValue;
     }
-    container[updaterSymbol] = () => {
-        if(configuration!.updater) {
-            container.value = container.updater(container.value, parent, engine);
-        }
-        if(_.isObject(container.value)) {
-            Object.values(container.value).forEach((child:any) => child[updaterSymbol]());
-        }
-    }
 
     const handler = {
         get: function (target: any, prop: string | number, receiver: any) {
             if (_.isSymbol(prop)) {
+                if(prop == updaterSymbol) {
+                    return () => {
+                        if(_.isObject(container.value)) {
+                            Object.values(container.value).forEach((child:any) => child[updaterSymbol]());
+                        }
+                        if(configuration!.updater) {
+                            container.value = configuration!.updater(container.value, parent, engine);
+                        }
+                    }
+                }
                 return container[updaterSymbol]
             }
             if (interceptedMethods.includes(prop)) {
@@ -121,8 +123,6 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
             return container.value[prop];
         }
     };
-
-    container[listenersSymbol] = configuration.updater;
     container[referenceIdSymbol] = id;
     return new Proxy(container, handler);
 }
