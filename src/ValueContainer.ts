@@ -61,7 +61,7 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                 return ()=>{
                     const updaterFunction = container[prop]
                     if(updaterFunction) {
-                        container.value = updaterFunction(container.value, parent, engine);
+                        container.value = updaterFunction(container.value, engine.getReference(parent), engine);
                         callListeners(container, "changed", engine)(container.value);
                     }
                     if(_.isObject(container.value)) {
