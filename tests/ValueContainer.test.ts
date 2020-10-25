@@ -60,7 +60,7 @@ describe("ValueContainer", function () {
         ref.on("changed", changeCallback);
         ref.foo.set(123);
         expect(changeCallback.mock.calls.length).toBe(1);
-    })
+    });
 
 });
 
@@ -140,4 +140,22 @@ describe("array ValueContainer", function () {
         expect(middleCallback.mock.calls.length).toBe(1);
         expect(topCallback.mock.calls.length).toBe(1);
     });
+    it("calling update calls update on children", function () {
+        const topUpdater = jest.fn();
+        const middleUpdater = jest.fn();
+        const bottomUpdater = jest.fn();
+        engine = new Engine(new EngineConfiguration()
+            .WithGlobalProperties({
+                    top: EngineConfiguration.configProperty({
+                        middle: EngineConfiguration.configProperty({
+                            bottom: EngineConfiguration.configProperty(null, bottomUpdater)
+                        }, middleUpdater)
+                    }, topUpdater)
+                }
+            ));
+        engine.tick(1);
+        expect(topUpdater).toHaveBeenCalled();
+        expect(middleUpdater).toHaveBeenCalled();
+        expect(bottomUpdater).toHaveBeenCalled();
+    })
 });
