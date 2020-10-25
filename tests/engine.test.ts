@@ -34,7 +34,7 @@ describe("the engine", function () {
     });
     it("calls update on all reference each tick", function () {
         expect(() => engine.tick(1000)).not.toThrow();
-    })
+    });
 });
 
 describe("Configuring global properties", function () {
