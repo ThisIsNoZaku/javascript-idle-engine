@@ -23,7 +23,7 @@ function callListeners(container: any, eventName: string, engine: Engine) {
     }
 }
 
-export function ValueContainer(id: number, engine: Engine, configuration?: PropertyConfiguration, parent?: any) {
+export function ValueContainer(id: number, engine: Engine, configuration?: PropertyConfiguration, parentId?: any) {
     if (!configuration) {
         configuration = {
             startingValue: null
@@ -63,7 +63,7 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                             Object.values(container.value).forEach((child:any) => child[updaterSymbol]());
                         }
                         if(configuration!.updater) {
-                            container.value = configuration!.updater(container.value, parent, engine);
+                            container.value = configuration!.updater(container.value, engine.getReference(parentId), engine);
                         }
                     }
                 }
