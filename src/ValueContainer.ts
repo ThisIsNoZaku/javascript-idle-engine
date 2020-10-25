@@ -63,7 +63,11 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                             Object.values(container.value).forEach((child:any) => child[updaterSymbol]());
                         }
                         if(configuration!.updater) {
-                            container.value = configuration!.updater(container.value, engine.getReference(parentId), engine);
+                            const updatedValue = configuration!.updater(container.value, engine.getReference(parentId), engine);
+                            if(updatedValue === undefined) {
+                                throw new Error("An updater method returned undefined, which is not allowed. If you actually wanted the updater to return nothing, explicitly return null instead.");
+                            }
+                            container.value = updatedValue;
                             callListeners(container, "changed", engine)(container.value);
                         }
                     }
@@ -74,6 +78,9 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                 switch (prop) {
                     case "set":
                         return (value: any) => {
+                            if(value === undefined) {
+                                throw new Error("Tried to set a value to undefined, which is not allowed. If you actually wanted the value to be nothing, use null instead.")
+                            }
                             container.value = value;
                             callListeners(container, "changed", engine)(container.value);
                         }

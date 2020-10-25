@@ -141,9 +141,9 @@ describe("array ValueContainer", function () {
         expect(topCallback.mock.calls.length).toBe(1);
     });
     it("calling update calls update on children", function () {
-        const topUpdater = jest.fn();
-        const middleUpdater = jest.fn();
-        const bottomUpdater = jest.fn();
+        const topUpdater = jest.fn().mockReturnValue(null);
+        const middleUpdater = jest.fn().mockReturnValue(null);
+        const bottomUpdater = jest.fn().mockReturnValue(null);
         engine = new Engine(new EngineConfiguration()
             .WithGlobalProperties({
                     top: EngineConfiguration.configProperty({
