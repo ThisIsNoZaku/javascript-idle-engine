@@ -72,7 +72,11 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                         }
                     }
                 } else if (prop == Symbol.toPrimitive) {
-                    return container.value.toPrimitive();
+                    return (hint:any) => {
+                        if(hint === typeof container.value) {
+                            return container.value;
+                        }
+                    }
                 }
                 return container[updaterSymbol]
             }
