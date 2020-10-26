@@ -128,7 +128,7 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
             if (container.value === undefined) {
                 container.value = {};
             }
-            if (container.value[prop] === undefined) {
+            if (container.value[prop] === undefined && !(prop as string).startsWith("$")) {
                 const newChild = engine.createReference({}, container.value);
                 newChild.on("changed", callListeners(container, "changed", engine))
                 container.value[prop] = newChild;
