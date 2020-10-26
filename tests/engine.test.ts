@@ -16,28 +16,25 @@ describe("the engine", function () {
     });
     it("creates a container for declared string global properties", function () {
         expect(engine.globals.string).toBeDefined();
+        expect(engine.globals.string).toEqual("string");
     });
     it("creates a container for declared boolean global properties", function () {
         expect(engine.globals.boolean).toBeDefined();
+        expect(engine.globals.boolean).toEqual(true);
     });
     it("creates a container for declared number global properties", function () {
         expect(engine.globals.number).toBeDefined();
+        expect(engine.globals.number).toEqual(1);
     });
     it("creates a container for declared object global properties", function () {
-        expect(engine.globals.object).toBeDefined;
-    });
-    it("assigning to a global property does not create a new container", function () {
-        const originalValue = engine.globals.string;
-        engine.globals.string.set("newString");
-        expect(engine.globals.string.get()).toEqual("newString");
-        expect(originalValue).toBe(engine.globals.string);
+        expect(engine.globals.object).toMatchObject({});
     });
     it("calls update on all reference each tick", function () {
         expect(() => engine.tick(1000)).not.toThrow();
     });
 });
 
-describe("Configuring global properties", function () {
+describe("Managed", function () {
     let engine: Engine;
     beforeEach(() => {
         engine = new Engine(new EngineConfiguration().WithGlobalProperties({
@@ -55,7 +52,7 @@ describe("Configuring global properties", function () {
         }
     });
     it("takes a string or number as a starting value", function () {
-        expect(engine.globals.string.get()).toBe("string");
-        expect(engine.globals.number.get()).toBe(1);
+        expect(engine.globals.string).toBe("string");
+        expect(engine.globals.number).toBe(1);
     });
 });

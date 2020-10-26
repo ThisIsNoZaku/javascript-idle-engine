@@ -17,6 +17,7 @@
     "gulp": "^4.0.2",
     "gulp-typescript": "^6.0.0-alpha.1",
     "lodash": "^4.17.20",
+    "on-change": "^2.1.4",
     "typescript": "^4.0.3"
   },
   "devDependencies": {

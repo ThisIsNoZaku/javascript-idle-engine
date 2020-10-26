@@ -2,121 +2,92 @@ import EventSource from "./EventSource";
 import {Engine} from "./Engine";
 import * as _ from "lodash";
 import {PropertyConfiguration} from "./PropertyConfiguration";
+import {ChangeListener} from "./ChangeListener";
 
-export const reservedPropertyNames: any[] = ["set", "get", "on", "valueOf", "startingValue"];
-const interceptedMethods: any[] = ["set", "get", "on", "push"];
-export const listenersSymbol = Symbol.for("listeners");
+const interceptedMethods: any[] = ["watch"];
+export const reservedPropertyNames = ["on", "watch", "startingValue"];
+export const changeListeners = Symbol.for("listeners");
 export const referenceIdSymbol = Symbol.for("id");
-export const updaterSymbol = Symbol.for("update");
+export const updaterSymbol = Symbol.for("property-updaters");
+const childListeners = Symbol.for("child-listeners");
 
-function callListeners(container: any, eventName: string, engine: Engine) {
-    return (arg: any) => {
-        const allListeners = container[listenersSymbol];
-        if (allListeners) {
-            const actionListeners = allListeners[eventName];
-            if (actionListeners) {
-                actionListeners.forEach((listener: any) => {
-                    listener(container.value, container, engine);
+function generateUpdaterFor(wrappedValue: any) {
+    return (engine: Engine) => {
+        Object.keys(wrappedValue).forEach(child => {
+            // Call updater function, if any for the child;
+            const updater = wrappedValue[updaterSymbol][child];
+            if (updater) {
+                const newValue = updater(wrappedValue[child], wrappedValue, engine);
+                if (newValue === undefined) {
+                    throw new Error("An updater method returned undefined, which is not allowed. A method must return a value, return null if 'nothing' is a valid result.");
+                }
+                wrappedValue[child] = newValue;
+                wrappedValue[changeListeners].forEach((listener:any) => {
+                    listener(child, newValue);
                 })
             }
-        }
+            if (_.isObject(wrappedValue[child])) {
+                wrappedValue[child][updaterSymbol](engine);
+            }
+        });
     }
 }
 
-export function ValueContainer(id: number, engine: Engine, configuration?: PropertyConfiguration, parentId?: any) {
-    if (!configuration) {
-        configuration = {
-            startingValue: null
-        };
-    }
-    let container: any = {};
-    if (_.isObject(configuration.startingValue)) {
-        reservedPropertyNames.forEach(reserved => {
-            if (Object.keys(configuration!.startingValue).includes(reserved)) {
-                throw new Error(`${reserved} is a reserved property and cannot be defined in an object.`);
-            }
-        });
-        if (_.isArray(configuration.startingValue)) {
-            container.value = [];
-            configuration.startingValue.forEach(i => {
-                const childReference = engine.createReference(i, container.value);
-                childReference.on("changed", callListeners(container, "changed", engine).bind(container.value));
-                container.value.push(childReference);
-            })
-        } else {
-            container.value = Object.keys(configuration.startingValue).reduce((wrapped: any, prop: string) => {
-                wrapped[prop] = engine.createReference(configuration!.startingValue[prop], id);
-                wrapped[prop].on("changed", callListeners(container, "changed", engine).bind(container.value));
-                return wrapped;
-            }, {})
+function initialConfiguration(id: number, configuration: PropertyConfiguration, parent: any | undefined, engine: Engine) {
+    const initialValue:any = _.isArray(configuration.startingValue) ? [] : {};
+    initialValue[changeListeners] = [];
+    initialValue[updaterSymbol] = generateUpdaterFor(initialValue);
+    initialValue[childListeners] = {};
+    Object.keys(configuration.startingValue).forEach((prop: string) => {
+        if (configuration!.startingValue[prop].updater) { // Attach the updater for this property
+            initialValue[updaterSymbol][prop] = configuration!.startingValue[prop].updater;
         }
-    } else {
-        container.value = configuration.startingValue;
+        if(_.isObject(configuration.startingValue[prop].startingValue)) {
+            initialValue[prop] = engine.createReference(configuration!.startingValue[prop], id);
+            subscribeToChild(initialValue, prop, initialValue[prop]);
+        } else {
+            initialValue[prop] = configuration.startingValue[prop].startingValue;
+        }
+    })
+    return initialValue;
+}
+
+function subscribeToChild(parent:any, childProp:string | number, child:any) {
+    const childListener = (changedProperty:string, value:any) => {
+        parent[changeListeners].forEach((listener:any) => {
+            listener(childProp, parent);
+        });
+    };
+    parent[childListeners][childProp] = child.watch(childListener);
+}
+
+export function ValueContainer(id: number, engine: Engine, configuration: PropertyConfiguration, parent?: any) {
+    let wrappedValue: any = initialConfiguration(id, configuration, parent, engine);
+    if(!_.isObject(configuration.startingValue)) {
+        throw new Error("Cannot wrap non-object values");
     }
 
     const handler = {
-        get: function (target: any, prop: string | number, receiver: any) {
-            if (_.isSymbol(prop)) {
-                if(prop == updaterSymbol) {
-                    return () => {
-                        if(_.isObject(container.value)) {
-                            Object.values(container.value).forEach((child:any) => child[updaterSymbol]());
-                        }
-                        if(configuration!.updater) {
-                            const updatedValue = configuration!.updater(container.value, engine.getReference(parentId), engine);
-                            if(updatedValue === undefined) {
-                                throw new Error("An updater method returned undefined, which is not allowed. If you actually wanted the updater to return nothing, explicitly return null instead.");
-                            }
-                            container.value = updatedValue;
-                            callListeners(container, "changed", engine)(container.value);
-                        }
-                    }
-                } else if (prop == Symbol.toPrimitive) {
-                    return (hint:any) => {
-                        if(hint === typeof container.value) {
-                            return container.value;
-                        }
-                    }
-                }
-                return container[updaterSymbol]
-            }
+        get: function (target: any, prop: string | number | symbol, receiver: any) {
             if (interceptedMethods.includes(prop)) {
                 switch (prop) {
-                    case "set":
-                        return (value: any) => {
-                            if(value === undefined) {
-                                throw new Error("Tried to set a value to undefined, which is not allowed. If you actually wanted the value to be nothing, use null instead.")
+                    case "__proxy__":return true;
+                    case "watch":
+                        return (listener: ChangeListener) => {
+                            if(typeof listener !== "function") {
+                                throw new Error("Tried to call watch with a non-function argument.");
                             }
-                            container.value = value;
-                            callListeners(container, "changed", engine)(container.value);
-                        }
-                    case "get":
-                        return () => {
-                            return container.value;
-                        }
-                    case "on":
-                        return (event: string, listener: (value: any, parent?: any, engine?: Engine) => void) => { // FIXME: Define a type for these updater/listener functions.
-                            let allListeners = target[listenersSymbol];
-                            if (!allListeners) {
-                                allListeners = {};
-                                target[listenersSymbol] = allListeners;
-                            }
-                            let eventListeners = allListeners[event];
-                            if (!eventListeners) {
-                                eventListeners = [];
-                                allListeners[event] = eventListeners;
-                            }
-                            eventListeners.push(listener);
+                            wrappedValue[changeListeners].push(listener);
                             return {
-                                unsubscribe: () => {
-                                    allListeners[event] = eventListeners.filter((addedListener: (value: any, parent?: any, engine?: Engine) => void) => addedListener != listener)
+                                unsubscribe: function () {
+                                    wrappedValue[changeListeners] = wrappedValue[changeListeners].filter((l:any) => l !== listener);
                                 }
                             }
-                        }
+                        };
                     case "push":
-                        if (container.value && container.value.push) {
+                        if (wrappedValue && wrappedValue.push) {
                             return (value: any) => {
-                                container.value.push(engine.createReference({
+                                wrappedValue.push(engine.createReference({
                                     startingValue: value
                                 }, target));
                             }
@@ -125,18 +96,33 @@ export function ValueContainer(id: number, engine: Engine, configuration?: Prope
                         }
                 }
             }
-            if (container.value === undefined) {
-                container.value = {};
+            if (typeof wrappedValue[prop] === "function") {
+                return wrappedValue[prop].bind(wrappedValue);
             }
-            if (container.value[prop] === undefined && !(prop as string).startsWith("$")) {
-                const newChild = engine.createReference({}, container.value);
-                newChild.on("changed", callListeners(container, "changed", engine))
-                container.value[prop] = newChild;
+            return wrappedValue[prop];
+        },
+        set: function (target: any, prop: string | number, incomingValue: any, receiver: any) {
+            if(_.isObject(wrappedValue[prop])) {
+                wrappedValue[childListeners][prop].unsubscribe();
+                delete wrappedValue[childListeners][prop]; // Unsubscribe from the child
             }
-
-            return container.value[prop];
+            let actualValue:any;
+            if(_.isObject(incomingValue)) {
+                if(!(<any>incomingValue).__proxy__) {
+                    actualValue = engine.createReference({
+                        startingValue: incomingValue
+                    });
+                }
+                subscribeToChild(target, prop, actualValue);
+            } else {
+                actualValue = incomingValue;
+            }
+            wrappedValue[prop] = actualValue;
+            // notify listeners watching this property
+            wrappedValue[changeListeners].forEach((listener:any) => listener(prop, incomingValue));
+            return true;
         }
     };
-    container[referenceIdSymbol] = id;
-    return new Proxy(container, handler);
+    wrappedValue[referenceIdSymbol] = id;
+    return new Proxy(wrappedValue, handler);
 }

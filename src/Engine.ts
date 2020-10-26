@@ -47,8 +47,11 @@ export class Engine {
     }
 
     public tick(interval: number) {
-        Object.keys(this.globals.get()).forEach(property => {
-            this.globals[property][updaterSymbol](this, interval);
+        Object.keys(this.globals).forEach(property => {
+            const updater = this.globals[updaterSymbol];
+            if(updater) {
+                updater(this, interval);
+            }
         });
     }
 
