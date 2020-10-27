@@ -30,7 +30,18 @@ describe("the engine", function () {
         expect(engine.globals.object).toMatchObject({});
     });
     it("calls update on all reference each tick", function () {
+        engine = new Engine(new EngineConfiguration().WithGlobalProperties({
+            string: "string",
+            number: 1,
+            boolean: true,
+            object: {
+                updated: EngineConfiguration.configProperty(0, (current:any) => {
+                    return current + 1;
+                })
+            }
+        }));
         expect(() => engine.tick(1000)).not.toThrow();
+        expect(engine.globals.object.updated).toEqual(1);
     });
 });
 

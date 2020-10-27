@@ -1,16 +1,17 @@
-import { EngineConfiguration } from "./EngineConfiguration";
+import {EngineConfiguration} from "./EngineConfiguration";
 import {updaterSymbol, ValueContainer} from "./ValueContainer";
 import {PropertyConfiguration} from "./PropertyConfiguration";
 
 export class Engine {
-    public readonly globals:any;
-    public readonly tickRate:string;
-    private readonly references:any = [];
-    private accumulatedTime:number = 0;
-    private nextReferenceId:number = 0;
+    public readonly globals: any;
+    public readonly tickRate: string;
+    private readonly references: any = [];
+    private accumulatedTime: number = 0;
+    private nextReferenceId: number = 0;
     static EngineSymbol: symbol = Symbol("Engine");
-    constructor(configuration:EngineConfiguration) {
-        if(configuration == undefined) {
+
+    constructor(configuration: EngineConfiguration) {
+        if (configuration == undefined) {
             throw new Error("Missing configuration.");
         }
         this.globals = this.generateGlobals(configuration.globals);
@@ -18,7 +19,7 @@ export class Engine {
     }
 
     private generateGlobals(globals: { [p: string]: any } | undefined) {
-        if(!globals) {
+        if (!globals) {
             return {};
         }
         return this.createReference({startingValue: globals});
@@ -41,18 +42,16 @@ export class Engine {
     }
 
     public getReference(id: number | null) {
-        if(id !== null) {
+        if (id !== null) {
             return this.references[id];
         }
     }
 
     public tick(interval: number) {
-        Object.keys(this.globals).forEach(property => {
-            const updater = this.globals[updaterSymbol];
-            if(updater) {
-                updater(this, interval);
-            }
-        });
+        const updater = this.globals[updaterSymbol];
+        if (updater) {
+            updater(this, interval);
+        }
     }
 
     createReference(fromConfiguration: PropertyConfiguration, parent?: number) {
