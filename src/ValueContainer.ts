@@ -4,7 +4,7 @@ import * as _ from "lodash";
 import {PropertyConfiguration} from "./PropertyConfiguration";
 import {ChangeListener} from "./ChangeListener";
 
-const interceptedMethods: any[] = ["watch"];
+const interceptedMethods: any[] = ["watch", "push"];
 export const reservedPropertyNames = ["on", "watch", "startingValue"];
 export const changeListeners = Symbol.for("listeners");
 export const referenceIdSymbol = Symbol.for("id");
