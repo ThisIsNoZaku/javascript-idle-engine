@@ -90,6 +90,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                                 wrappedValue.push(_.isObject(value) ? engine.createReference({
                                     startingValue: value
                                 }, target) : value);
+                                wrappedValue[changeListeners].forEach((listener:any) => listener(wrappedValue.length - 1, value));
                             }
                         } else {
                             return undefined; // Don't return the function if the value doesn't define it.
