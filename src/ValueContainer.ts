@@ -87,9 +87,9 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                     case "push":
                         if (wrappedValue && wrappedValue.push) {
                             return (value: any) => {
-                                wrappedValue.push(engine.createReference({
+                                wrappedValue.push(_.isObject(value) ? engine.createReference({
                                     startingValue: value
-                                }, target));
+                                }, target) : value);
                             }
                         } else {
                             return undefined; // Don't return the function if the value doesn't define it.
