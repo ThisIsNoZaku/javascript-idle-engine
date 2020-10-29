@@ -9,6 +9,7 @@ export class Engine {
     private accumulatedTime: number = 0;
     private nextReferenceId: number = 0;
     static EngineSymbol: symbol = Symbol("Engine");
+    private tickIntervalId?:NodeJS.Timeout;
 
     constructor(configuration: EngineConfiguration) {
         if (configuration == undefined) {
@@ -38,7 +39,7 @@ export class Engine {
                 interval = 100;
                 break;
         }
-        setInterval(this.tick.bind(this, interval), interval)
+        this.tickIntervalId = setInterval(this.tick.bind(this, interval), interval)
     }
 
     public getReference(id: number | null) {
@@ -59,5 +60,11 @@ export class Engine {
         const newRef = ValueContainer(usedId, this, fromConfiguration, parent);
         this.references[usedId] = newRef;
         return newRef;
+    }
+
+    pause() {
+        if(this.tickIntervalId !== undefined) {
+            clearInterval(this.tickIntervalId);
+        }
     }
 }

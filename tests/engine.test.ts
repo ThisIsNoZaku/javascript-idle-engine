@@ -31,9 +31,6 @@ describe("the engine", function () {
     });
     it("calls update on all reference each tick", function () {
         engine = new Engine(new EngineConfiguration().WithGlobalProperties({
-            string: "string",
-            number: 1,
-            boolean: true,
             object: {
                 updated: EngineConfiguration.configProperty(0, (current:any) => {
                     return current + 1;
@@ -43,6 +40,18 @@ describe("the engine", function () {
         expect(() => engine.tick(1000)).not.toThrow();
         expect(engine.globals.object.updated).toEqual(1);
     });
+    it("can be paused", function () {
+        engine = new Engine(new EngineConfiguration().WithGlobalProperties({
+            object: {
+                updated: EngineConfiguration.configProperty(0, (current:any) => {
+                    return current + 1;
+                })
+            }
+        }));
+        engine.start();
+        engine.pause();
+        expect(engine.globals.object.updated).toBe(0);
+    })
 });
 
 describe("Managed", function () {
