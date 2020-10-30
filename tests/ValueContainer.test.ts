@@ -47,7 +47,9 @@ describe("ValueContainer wrapping a primitive", function () {
         ref.watch(parentListener);
         ref.child.property = "123";
         expect(parentListener.mock.calls[0][0]).toBe("child")
-        expect(parentListener.mock.calls[0][1].child.property).toBe("123");
+        expect(parentListener.mock.calls[0][1]).toMatchObject({
+            property: "123"
+        });
     });
     it("subscriptions to the container can be removed", function () {
         const ref = ValueContainer(1, engine, {startingValue: {}});
@@ -122,7 +124,7 @@ describe("array ValueContainer", function () {
         expect(middleCallback.mock.calls[0]).toEqual(["bottom", 123]);
         expect(topCallback.mock.calls.length).toBe(1);
         expect(topCallback.mock.calls[0][0]).toEqual("middle");
-        expect(topCallback.mock.calls[0][1].middle.bottom).toEqual(123);
+        expect(topCallback.mock.calls[0][1].bottom).toEqual(123);
     });
 
     it("modifying an array notifies all parent listeners", function () {

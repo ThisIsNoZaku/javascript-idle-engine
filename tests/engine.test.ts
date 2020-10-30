@@ -54,7 +54,7 @@ describe("the engine", function () {
     })
 });
 
-describe("Managed", function () {
+describe("Managed values", function () {
     let engine: Engine;
     beforeEach(() => {
         engine = new Engine(new EngineConfiguration().WithGlobalProperties({
@@ -75,4 +75,12 @@ describe("Managed", function () {
         expect(engine.globals.string).toBe("string");
         expect(engine.globals.number).toBe(1);
     });
+    it("can create a value on the fly", function () {
+        engine = new Engine(new EngineConfiguration());
+        const ref = engine.createReference({
+            startingValue: [{startingValue: 1}]
+        })
+        expect((<any>ref).__proxy__).toBeTruthy();
+        expect([...ref]).toEqual([1]);
+    })
 });

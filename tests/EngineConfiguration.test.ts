@@ -83,6 +83,16 @@ describe("configProperty helper", function () {
             }
         });
     });
+    it("recursively transforms the values in an array", function () {
+        const config = EngineConfiguration.configProperty([1]);
+        expect(config).toEqual({
+            startingValue: [
+                {
+                    startingValue: 1
+                }
+            ]
+        })
+    });
     it("uses an existing configuration object", function () {
         const config = EngineConfiguration.configProperty({
             object: {
