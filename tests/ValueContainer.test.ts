@@ -1,8 +1,7 @@
 import {changeListeners, ValueContainer} from "../src/ValueContainer";
 import {Engine} from "../src/Engine";
 import {EngineConfiguration} from "../src";
-import * as ts from "typescript/lib/tsserverlibrary";
-import {tokenToString} from "typescript/lib/tsserverlibrary";
+import { Big } from "big.js";
 
 describe("ValueContainer wrapping a primitive", function () {
     let engine: Engine;
@@ -25,7 +24,7 @@ describe("ValueContainer wrapping a primitive", function () {
             }
         });
         expect(ref.string).toEqual("string");
-        expect(ref.number).toEqual(1);
+        expect(ref.number).toEqual(Big(1));
         expect(ref.boolean).toEqual(true);
     });
     it("properties of the object can be subscribed to", function () {
@@ -33,7 +32,7 @@ describe("ValueContainer wrapping a primitive", function () {
         const listener = jest.fn();
         ref.watch(listener);
         ref.foo = "new";
-        expect(listener).toHaveBeenCalledWith("foo", "new");
+        expect(listener).toHaveBeenCalledWith("foo", "new", expect.objectContaining(ref));
     });
     it("when a child object changes, that objects parents are notified as well", function () {
         const ref = ValueContainer(1, engine, {
@@ -73,9 +72,6 @@ describe("ValueContainer wrapping a primitive", function () {
         expect(changeCallback).not.toHaveBeenCalled();
         expect(firstChild[changeListeners].length).toBe(1);
     });
-    it("if an object is assigned, it is wrapped", function () {
-
-    });
 });
 
 describe("array ValueContainer", function () {
@@ -101,17 +97,17 @@ describe("array ValueContainer", function () {
             startingValue: []
         });
         ref[0] = 123
-        expect(ref[0]).toBe(123);
+        expect(ref[0]).toEqual(Big(123));
     });
     it("inserting an object via push wraps the value", function () {
         const ref = engine.createReference({startingValue: []});
         ref.push(123);
-        expect(ref[0]).toBe(123);
+        expect(ref[0]).toEqual(Big(123));
     });
     it("assigning to an index that already has a wrapped value assigns to the wrapper instead of creating a new one", function () {
         const ref = engine.createReference({startingValue: [123]});
         ref[0] = 321;
-        expect([...ref]).toMatchObject([321])
+        expect([...ref]).toMatchObject([Big(321)])
     });
     it("modifying an object notifies all parent listeners", function () {
         const topCallback = jest.fn();
@@ -121,10 +117,11 @@ describe("array ValueContainer", function () {
         engine.globals.top.middle.bottom = 123;
 
         expect(middleCallback.mock.calls.length).toBe(1);
-        expect(middleCallback.mock.calls[0]).toEqual(["bottom", 123]);
+        expect(middleCallback.mock.calls[0][0]).toEqual("bottom")
+        expect(middleCallback.mock.calls[0][1]).toEqual(Big(123))
         expect(topCallback.mock.calls.length).toBe(1);
         expect(topCallback.mock.calls[0][0]).toEqual("middle");
-        expect(topCallback.mock.calls[0][1].bottom).toEqual(123);
+        expect(topCallback.mock.calls[0][1].bottom).toEqual(Big(123));
     });
 
     it("modifying an array notifies all parent listeners", function () {
@@ -145,7 +142,7 @@ describe("array ValueContainer", function () {
         engine.globals.top.watch(topCallback);
         engine.globals.top[0].watch(middleCallback);
         engine.globals.top[0][0].watch(bottomCallback);
-        engine.globals.top[0][0][0] = 1;
+        engine.globals.top[0][0][0] = Big(1);
 
         expect(bottomCallback.mock.calls.length).toBe(1);
         expect(middleCallback.mock.calls.length).toBe(1);

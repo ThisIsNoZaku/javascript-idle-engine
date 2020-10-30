@@ -12,7 +12,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/big.js": "^6.0.0",
     "@types/lodash": "^4.14.162",
+    "big.js": "^6.0.1",
     "del": "^6.0.0",
     "gulp": "^4.0.2",
     "gulp-typescript": "^6.0.0-alpha.1",

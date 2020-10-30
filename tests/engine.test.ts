@@ -3,6 +3,7 @@ import { Engine } from "../src/Engine";
 import {ValueContainer} from "../src/ValueContainer";
 import * as ts from "typescript/lib/tsserverlibrary";
 import OpenFileInfoTelemetryEvent = ts.server.OpenFileInfoTelemetryEvent;
+import {Big} from "big.js";
 
 describe("the engine", function () {
     let engine: Engine;
@@ -24,7 +25,7 @@ describe("the engine", function () {
     });
     it("creates a container for declared number global properties", function () {
         expect(engine.globals.number).toBeDefined();
-        expect(engine.globals.number).toEqual(1);
+        expect(engine.globals.number).toEqual(Big(1));
     });
     it("creates a container for declared object global properties", function () {
         expect(engine.globals.object).toMatchObject({});
@@ -33,12 +34,12 @@ describe("the engine", function () {
         engine = new Engine(new EngineConfiguration().WithGlobalProperties({
             object: {
                 updated: EngineConfiguration.configProperty(0, (current:any) => {
-                    return current + 1;
+                    return current.add(1);
                 })
             }
         }));
         expect(() => engine.tick(1000)).not.toThrow();
-        expect(engine.globals.object.updated).toEqual(1);
+        expect(engine.globals.object.updated).toEqual(Big(1));
     });
     it("can be paused", function () {
         engine = new Engine(new EngineConfiguration().WithGlobalProperties({
@@ -50,7 +51,7 @@ describe("the engine", function () {
         }));
         engine.start();
         engine.pause();
-        expect(engine.globals.object.updated).toBe(0);
+        expect(engine.globals.object.updated).toEqual(Big(0));
     })
 });
 
@@ -73,14 +74,14 @@ describe("Managed values", function () {
     });
     it("takes a string or number as a starting value", function () {
         expect(engine.globals.string).toBe("string");
-        expect(engine.globals.number).toBe(1);
+        expect(engine.globals.number).toEqual(new Big(1));
     });
     it("can create a value on the fly", function () {
         engine = new Engine(new EngineConfiguration());
         const ref = engine.createReference({
             startingValue: [{startingValue: 1}]
         })
-        expect([...ref]).toEqual([1]);
+        expect([...ref]).toEqual([Big(1)]);
     });
     it("does not call listeners when update does not change a value", function () {
         const watcher = jest.fn();

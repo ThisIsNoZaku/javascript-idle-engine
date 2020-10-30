@@ -1,5 +1,5 @@
 import {EngineConfiguration} from "../src/EngineConfiguration";
-import {PropertyConfiguration} from "../src/PropertyConfiguration";
+import { Big } from "big.js";
 
 describe("the engine configuration", function () {
     var configuration: EngineConfiguration;
@@ -18,7 +18,7 @@ describe("the engine configuration", function () {
             startingValue: "s"
         });
         expect(configuration.globals.array.startingValue[1]).toEqual({
-            startingValue: 1
+            startingValue: Big(1)
         });
         expect(configuration.globals.array.startingValue[2]).toEqual({
             startingValue: true
@@ -38,7 +38,7 @@ describe("configProperty helper", function () {
     it("returns a configuration with the given number as the starting value", function () {
         const config = EngineConfiguration.configProperty(1);
         expect(config).toEqual({
-            startingValue: 1
+            startingValue: Big(1)
         });
     });
     it("returns a configuration with the given boolean as the starting value", function () {
@@ -66,7 +66,7 @@ describe("configProperty helper", function () {
                             startingValue: "nestedString",
                         },
                         nestedNumber: {
-                            startingValue: 1
+                            startingValue: Big(1)
                         },
                         nestedBoolean: {
                             startingValue: true
@@ -74,7 +74,7 @@ describe("configProperty helper", function () {
                         nestedObject: {
                             startingValue: {
                                 furtherNested: {
-                                    startingValue: 1
+                                    startingValue: Big(1)
                                 }
                             }
                         }
@@ -88,7 +88,7 @@ describe("configProperty helper", function () {
         expect(config).toEqual({
             startingValue: [
                 {
-                    startingValue: 1
+                    startingValue: Big(1)
                 }
             ]
         })
@@ -110,7 +110,7 @@ describe("configProperty helper", function () {
                             startingValue: "nestedString",
                         },
                         nestedNumber: {
-                            startingValue: 1
+                            startingValue: Big(1)
                         },
                         nestedBoolean: {
                             startingValue: true

@@ -2,6 +2,7 @@ import {EngineConfiguration} from "./EngineConfiguration";
 import {updaterSymbol, ValueContainer} from "./ValueContainer";
 import {PropertyConfiguration} from "./PropertyConfiguration";
 import _ from "lodash";
+import { Big } from "big.js";
 
 export class Engine {
     public readonly globals: any;
@@ -71,7 +72,7 @@ export class Engine {
     }
 
     validateNewRef(newRef:any) {
-        if(_.isObject(newRef)) {
+        if(_.isObject(newRef) && !(newRef instanceof Big)) {
             Object.keys(newRef).forEach(key => {
                 if(newRef instanceof PropertyConfiguration) {
                     throw new Error("An instance of PropertyConfiguration was found inside a managed value. This is not allowed and is a bug in the engine.");

@@ -2,6 +2,7 @@ import { PropertyConfiguration } from "./PropertyConfiguration";
 import _ from "lodash";
 import {reservedPropertyNames} from "./ValueContainer";
 import {Engine} from "./Engine";
+import { Big } from "big.js";
 
 export class EngineConfiguration {
     public globals:{[name:string]: PropertyConfiguration } = {};
@@ -28,7 +29,7 @@ export class EngineConfiguration {
                     return transformed;
                 }, {}));
             } else {
-                configuration = new PropertyConfiguration(configuration);
+                configuration = new PropertyConfiguration(_.isNumber(configuration) ? Big(configuration) : configuration);
             }
         }
         return configuration;
@@ -57,6 +58,9 @@ export class EngineConfiguration {
                 transformed[next] = this.configProperty((startingValue as any)[next]);
                 return transformed;
             }, {});
+        }
+        if(_.isNumber(startingValue)) {
+            startingValue = Big(startingValue);
         }
         return new PropertyConfiguration(startingValue, updater);
     }

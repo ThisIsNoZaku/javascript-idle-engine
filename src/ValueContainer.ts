@@ -4,6 +4,7 @@ import * as _ from "lodash";
 import {PropertyConfiguration} from "./PropertyConfiguration";
 import {ChangeListener} from "./ChangeListener";
 import {EngineConfiguration} from "./EngineConfiguration";
+import { Big } from "big.js";
 
 const interceptedProperties: any[] = ["watch", "push", "__proxy__"];
 export const reservedPropertyNames = ["on", "watch", "startingValue"];
@@ -23,7 +24,9 @@ function generateUpdaterFor(wrappedValue: any) {
                 if (newValue === undefined) {
                     throw new Error("An updater method returned undefined, which is not allowed. A method must return a value, return null if 'nothing' is a valid result.");
                 }
-                if(_.isObject(newValue) && !(<any>newValue).__proxy__) {
+                if(_.isNumber(newValue)) {
+                    newValue = Big(newValue);
+                } else if(!(newValue instanceof Big) &&_.isObject(newValue) && !(<any>newValue).__proxy__) {
                     newValue = engine.createReference(EngineConfiguration.configProperty(newValue), wrappedValue);
                 }
                 wrappedValue[child] = newValue;
@@ -34,7 +37,7 @@ function generateUpdaterFor(wrappedValue: any) {
                     });
                 }
             }
-            if (_.isObject(wrappedValue[child])) {
+            if (!(wrappedValue[child] instanceof Big) &&_.isObject(wrappedValue[child])) {
                 wrappedValue[child][updaterSymbol](engine);
             }
         });
@@ -50,11 +53,13 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
         if (configuration!.startingValue[prop].updater) { // Attach the updater for this property
             initialValue[updaterSymbol][prop] = configuration!.startingValue[prop].updater;
         }
-        if(_.isObject(configuration.startingValue[prop].startingValue)) {
+        if(!(configuration.startingValue[prop].startingValue instanceof Big) &&_.isObject(configuration.startingValue[prop].startingValue)) {
             initialValue[prop] = engine.createReference(configuration!.startingValue[prop], id);
             subscribeToChild(initialValue, prop, initialValue[prop]);
         } else {
-            initialValue[prop] = configuration.startingValue[prop].startingValue;
+            initialValue[prop] = _.isNumber(configuration.startingValue[prop].startingValue)
+                ? Big(configuration.startingValue[prop].startingValue) :
+                configuration.startingValue[prop].startingValue;
         }
     });
     return initialValue;
@@ -97,7 +102,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                             return (value: any) => {
                                 wrappedValue.push(_.isObject(value) ? engine.createReference({
                                     startingValue: value
-                                }, target) : value);
+                                }, target) : (_.isNumber(value) ? Big(value) : value));
                                 wrappedValue[changeListeners].forEach((listener:any) => listener(wrappedValue.length - 1, value));
                             }
                         } else {
@@ -111,7 +116,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
             return wrappedValue[prop];
         },
         set: function (target: any, prop: string | number, incomingValue: any, receiver: any) {
-            if(_.isObject(wrappedValue[prop])) {
+            if(!(wrappedValue[prop] instanceof Big) && _.isObject(wrappedValue[prop])) {
                 wrappedValue[childListeners][prop].unsubscribe();
                 delete wrappedValue[childListeners][prop]; // Unsubscribe from the child
             }
@@ -124,11 +129,15 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                 }
                 subscribeToChild(target, prop, actualValue);
             } else {
-                actualValue = incomingValue;
+                if(_.isNumber(incomingValue)) {
+                    actualValue = Big(incomingValue);
+                } else {
+                    actualValue = incomingValue;
+                }
             }
             wrappedValue[prop] = actualValue;
             // notify listeners watching this property
-            wrappedValue[changeListeners].forEach((listener:any) => listener(prop, incomingValue, wrappedValue));
+            wrappedValue[changeListeners].forEach((listener:any) => listener(prop, actualValue, wrappedValue));
             return true;
         }
     };
