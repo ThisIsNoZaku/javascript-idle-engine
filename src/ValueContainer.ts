@@ -28,7 +28,7 @@ function generateUpdaterFor(wrappedValue: any) {
                 }
                 wrappedValue[child] = newValue;
                 wrappedValue[changeListeners].forEach((listener:any) => {
-                    listener(child, newValue);
+                    listener(child, newValue, wrappedValue);
                 })
             }
             if (_.isObject(wrappedValue[child])) {
