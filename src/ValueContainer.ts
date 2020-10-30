@@ -49,7 +49,7 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
             initialValue[prop] = engine.createReference(configuration!.startingValue[prop], id);
             subscribeToChild(initialValue, prop, initialValue[prop]);
         } else {
-            initialValue[prop] = configuration.startingValue[prop];
+            initialValue[prop] = configuration.startingValue[prop].startingValue;
         }
     })
     return initialValue;
