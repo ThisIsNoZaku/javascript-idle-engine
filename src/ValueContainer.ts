@@ -10,7 +10,7 @@ export const reservedPropertyNames = ["on", "watch", "startingValue"];
 export const changeListeners = Symbol.for("listeners");
 export const referenceIdSymbol = Symbol.for("id");
 export const updaterSymbol = Symbol.for("property-updaters");
-export const isProxy = Symbol.for("is-proxy");
+export const lastUpdateValue = Symbol.for("last-updated");
 const childListeners = Symbol.for("child-listeners");
 
 function generateUpdaterFor(wrappedValue: any) {
@@ -27,9 +27,12 @@ function generateUpdaterFor(wrappedValue: any) {
                     newValue = engine.createReference(EngineConfiguration.configProperty(newValue), wrappedValue);
                 }
                 wrappedValue[child] = newValue;
-                wrappedValue[changeListeners].forEach((listener:any) => {
-                    listener(child, newValue, wrappedValue);
-                })
+                if(!_.isObject(newValue) && newValue !== updater[lastUpdateValue]) {
+                    updater[lastUpdateValue] = newValue;
+                    wrappedValue[changeListeners].forEach((listener: any) => {
+                        listener(child, newValue, wrappedValue);
+                    });
+                }
             }
             if (_.isObject(wrappedValue[child])) {
                 wrappedValue[child][updaterSymbol](engine);

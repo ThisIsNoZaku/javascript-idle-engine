@@ -168,5 +168,5 @@ describe("array ValueContainer", function () {
         expect(topUpdater).toHaveBeenCalled();
         expect(middleUpdater).toHaveBeenCalled();
         expect(bottomUpdater).toHaveBeenCalled();
-    })
+    });
 });

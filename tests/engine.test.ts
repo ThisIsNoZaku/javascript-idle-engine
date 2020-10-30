@@ -80,7 +80,13 @@ describe("Managed values", function () {
         const ref = engine.createReference({
             startingValue: [{startingValue: 1}]
         })
-        expect((<any>ref).__proxy__).toBeTruthy();
         expect([...ref]).toEqual([1]);
-    })
+    });
+    it("does not call listeners when update does not change a value", function () {
+        const watcher = jest.fn();
+        engine.globals.withUpdater.watch(watcher);
+        engine.tick(1);
+        engine.tick(1);
+        expect(watcher).toHaveBeenCalledTimes(1);
+    });
 });
