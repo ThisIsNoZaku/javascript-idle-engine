@@ -21,7 +21,7 @@ function generateUpdaterFor(wrappedValue: any) {
                 if (newValue === undefined) {
                     throw new Error("An updater method returned undefined, which is not allowed. A method must return a value, return null if 'nothing' is a valid result.");
                 }
-                if(_.isObject(newValue) && !newValue.__proxy__) {
+                if(_.isObject(newValue) && !(<any>newValue).__proxy__) {
                     newValue = engine.createReference({startingValue: newValue}, wrappedValue);
                 }
                 wrappedValue[child] = newValue;
