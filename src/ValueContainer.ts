@@ -3,6 +3,7 @@ import {Engine} from "./Engine";
 import * as _ from "lodash";
 import {PropertyConfiguration} from "./PropertyConfiguration";
 import {ChangeListener} from "./ChangeListener";
+import {EngineConfiguration} from "./EngineConfiguration";
 
 const interceptedMethods: any[] = ["watch", "push"];
 export const reservedPropertyNames = ["on", "watch", "startingValue"];
@@ -22,7 +23,7 @@ function generateUpdaterFor(wrappedValue: any) {
                     throw new Error("An updater method returned undefined, which is not allowed. A method must return a value, return null if 'nothing' is a valid result.");
                 }
                 if(_.isObject(newValue) && !(<any>newValue).__proxy__) {
-                    newValue = engine.createReference({startingValue: newValue}, wrappedValue);
+                    newValue = engine.createReference({startingValue: EngineConfiguration.configProperty(newValue)}, wrappedValue);
                 }
                 wrappedValue[child] = newValue;
                 wrappedValue[changeListeners].forEach((listener:any) => {
