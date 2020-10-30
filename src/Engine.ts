@@ -1,6 +1,7 @@
 import {EngineConfiguration} from "./EngineConfiguration";
 import {updaterSymbol, ValueContainer} from "./ValueContainer";
 import {PropertyConfiguration} from "./PropertyConfiguration";
+import _ from "lodash";
 
 export class Engine {
     public readonly globals: any;
