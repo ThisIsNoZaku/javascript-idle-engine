@@ -17,9 +17,12 @@ function generateUpdaterFor(wrappedValue: any) {
             // Call updater function, if any for the child;
             const updater = wrappedValue[updaterSymbol][child];
             if (updater) {
-                const newValue = updater(wrappedValue[child], wrappedValue, engine);
+                let newValue = updater(wrappedValue[child], wrappedValue, engine);
                 if (newValue === undefined) {
                     throw new Error("An updater method returned undefined, which is not allowed. A method must return a value, return null if 'nothing' is a valid result.");
+                }
+                if(_.isObject(newValue) && !newValue.__proxy__) {
+                    newValue = engine.createReference({startingValue: newValue}, wrappedValue);
                 }
                 wrappedValue[child] = newValue;
                 wrappedValue[changeListeners].forEach((listener:any) => {
@@ -55,7 +58,7 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
 function subscribeToChild(parent:any, childProp:string | number, child:any) {
     const childListener = (changedProperty:string, value:any) => {
         parent[changeListeners].forEach((listener:any) => {
-            listener(childProp, parent);
+            listener(childProp, parent[childProp], parent);
         });
     };
     parent[childListeners][childProp] = child.watch(childListener);
