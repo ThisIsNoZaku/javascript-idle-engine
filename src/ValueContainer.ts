@@ -10,6 +10,7 @@ export const reservedPropertyNames = ["on", "watch", "startingValue"];
 export const changeListeners = Symbol.for("listeners");
 export const referenceIdSymbol = Symbol.for("id");
 export const updaterSymbol = Symbol.for("property-updaters");
+export const isProxy = Symbol.for("is-proxy");
 const childListeners = Symbol.for("child-listeners");
 
 function generateUpdaterFor(wrappedValue: any) {
@@ -129,6 +130,5 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
         }
     };
     wrappedValue[referenceIdSymbol] = id;
-    wrappedValue.__proxy__ = true;
     return new Proxy(wrappedValue, handler);
 }
