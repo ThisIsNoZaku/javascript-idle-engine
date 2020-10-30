@@ -5,7 +5,7 @@ import {PropertyConfiguration} from "./PropertyConfiguration";
 import {ChangeListener} from "./ChangeListener";
 import {EngineConfiguration} from "./EngineConfiguration";
 
-const interceptedMethods: any[] = ["watch", "push"];
+const interceptedProperties: any[] = ["watch", "push", "__proxy__"];
 export const reservedPropertyNames = ["on", "watch", "startingValue"];
 export const changeListeners = Symbol.for("listeners");
 export const referenceIdSymbol = Symbol.for("id");
@@ -56,7 +56,7 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
         } else {
             initialValue[prop] = configuration.startingValue[prop].startingValue;
         }
-    })
+    });
     return initialValue;
 }
 
@@ -77,7 +77,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
 
     const handler = {
         get: function (target: any, prop: string | number | symbol, receiver: any) {
-            if (interceptedMethods.includes(prop)) {
+            if (interceptedProperties.includes(prop)) {
                 switch (prop) {
                     case "__proxy__":return true;
                     case "watch":
@@ -116,7 +116,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                 delete wrappedValue[childListeners][prop]; // Unsubscribe from the child
             }
             let actualValue:any;
-            if(_.isObject(incomingValue)) {
+            if(_.isObject(incomingValue) && !(incomingValue instanceof Big)) {
                 if(!(<any>incomingValue).__proxy__) {
                     actualValue = engine.createReference({
                         startingValue: incomingValue
