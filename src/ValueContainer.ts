@@ -129,5 +129,6 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
         }
     };
     wrappedValue[referenceIdSymbol] = id;
+    wrappedValue.__proxy__ = true;
     return new Proxy(wrappedValue, handler);
 }
