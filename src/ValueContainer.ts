@@ -125,7 +125,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
             }
             wrappedValue[prop] = actualValue;
             // notify listeners watching this property
-            wrappedValue[changeListeners].forEach((listener:any) => listener(prop, incomingValue));
+            wrappedValue[changeListeners].forEach((listener:any) => listener(prop, incomingValue, wrappedValue));
             return true;
         }
     };
