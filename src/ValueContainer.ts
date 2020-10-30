@@ -23,7 +23,7 @@ function generateUpdaterFor(wrappedValue: any) {
                     throw new Error("An updater method returned undefined, which is not allowed. A method must return a value, return null if 'nothing' is a valid result.");
                 }
                 if(_.isObject(newValue) && !(<any>newValue).__proxy__) {
-                    newValue = engine.createReference({startingValue: EngineConfiguration.configProperty(newValue)}, wrappedValue);
+                    newValue = engine.createReference(EngineConfiguration.configProperty(newValue), wrappedValue);
                 }
                 wrappedValue[child] = newValue;
                 wrappedValue[changeListeners].forEach((listener:any) => {
