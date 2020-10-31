@@ -1,6 +1,6 @@
 import {EngineConfiguration} from "./EngineConfiguration";
 import {updaterSymbol, ValueContainer} from "./ValueContainer";
-import {PropertyConfiguration} from "./PropertyConfiguration";
+import {PropertyConfiguration, PropertyConfigurationBuilder} from "./PropertyConfiguration";
 import _ from "lodash";
 import { Big } from "big.js";
 
@@ -60,7 +60,6 @@ export class Engine {
     createReference(fromConfiguration: PropertyConfiguration, parent?: number) {
         const usedId = this.nextReferenceId++
         const newRef = ValueContainer(usedId, this, fromConfiguration, parent);
-        this.validateNewRef(newRef);
         this.references[usedId] = newRef;
         return newRef;
     }
@@ -68,17 +67,6 @@ export class Engine {
     pause() {
         if(this.tickIntervalId !== undefined) {
             clearInterval(this.tickIntervalId);
-        }
-    }
-
-    validateNewRef(newRef:any) {
-        if(_.isObject(newRef) && !(newRef instanceof Big)) {
-            Object.keys(newRef).forEach(key => {
-                if(newRef instanceof PropertyConfiguration) {
-                    throw new Error("An instance of PropertyConfiguration was found inside a managed value. This is not allowed and is a bug in the engine.");
-                }
-                this.validateNewRef((<any>newRef)[key]);
-            })
         }
     }
 }

@@ -1,4 +1,4 @@
-import { PropertyConfiguration } from "./PropertyConfiguration";
+import {PropertyConfiguration, PropertyConfigurationBuilder} from "./PropertyConfiguration";
 import _ from "lodash";
 import {reservedPropertyNames} from "./ValueContainer";
 import {Engine} from "./Engine";
@@ -17,11 +17,11 @@ export class EngineConfiguration {
     }
 
     private transformToConfiguration(configuration: any) {
-        if(!(configuration instanceof PropertyConfiguration)) {
+        if(!(configuration instanceof PropertyConfigurationBuilder)) {
             if (_.isArray(configuration)) {
-                configuration = new PropertyConfiguration(configuration.map(d => this.transformToConfiguration(d)));
+                configuration = new PropertyConfigurationBuilder(configuration.map(d => this.transformToConfiguration(d)));
             } else if (_.isObject(configuration)) {
-                configuration = new PropertyConfiguration(Object.keys(configuration).reduce((transformed: any, key: string) => {
+                configuration = new PropertyConfigurationBuilder(Object.keys(configuration).reduce((transformed: any, key: string) => {
                     if(reservedPropertyNames.includes(key)) {
                         throw new Error(`${key} is a reserved keyword and not allowed as a property name`);
                     }
@@ -29,7 +29,7 @@ export class EngineConfiguration {
                     return transformed;
                 }, {}));
             } else {
-                configuration = new PropertyConfiguration(_.isNumber(configuration) ? Big(configuration) : configuration);
+                configuration = new PropertyConfigurationBuilder(_.isNumber(configuration) ? Big(configuration) : configuration);
             }
         }
         return configuration;
@@ -49,10 +49,10 @@ export class EngineConfiguration {
         return this;
     }
 
-    public static configProperty(startingValue?:any, updater?:(current:any, parent?:any, engine?: Engine)=>any): PropertyConfiguration{
+    public static configProperty(startingValue?:any, updater?:(current:any, parent?:any, engine?: Engine)=>any): PropertyConfigurationBuilder {
         if(_.isObject(startingValue)) {
-            if(startingValue instanceof PropertyConfiguration) {
-                return startingValue as PropertyConfiguration;
+            if(startingValue instanceof PropertyConfigurationBuilder) {
+                return startingValue as PropertyConfigurationBuilder;
             }
             startingValue = _.isArray(startingValue) ? startingValue.map(x => this.configProperty(x)) : Object.keys(startingValue).reduce((transformed:any, next)=>{
                 transformed[next] = this.configProperty((startingValue as any)[next]);
@@ -62,6 +62,6 @@ export class EngineConfiguration {
         if(_.isNumber(startingValue)) {
             startingValue = Big(startingValue);
         }
-        return new PropertyConfiguration(startingValue, updater);
+        return new PropertyConfigurationBuilder(startingValue, updater);
     }
 }

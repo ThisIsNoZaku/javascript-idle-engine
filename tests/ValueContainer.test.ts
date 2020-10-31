@@ -156,9 +156,9 @@ describe("array ValueContainer", function () {
             .WithGlobalProperties({
                     top: EngineConfiguration.configProperty({
                         middle: EngineConfiguration.configProperty({
-                            bottom: EngineConfiguration.configProperty(null, bottomUpdater)
-                        }, middleUpdater)
-                    }, topUpdater)
+                            bottom: EngineConfiguration.configProperty(null).withUpdater(bottomUpdater)
+                        }).withUpdater(middleUpdater)
+                    }).withUpdater(topUpdater)
                 }
             ));
         engine.tick(1);

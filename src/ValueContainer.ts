@@ -1,4 +1,3 @@
-import EventSource from "./EventSource";
 import {Engine} from "./Engine";
 import * as _ from "lodash";
 import {PropertyConfiguration} from "./PropertyConfiguration";
@@ -46,11 +45,11 @@ function generateUpdaterFor(wrappedValue: any) {
 
 function initialConfiguration(id: number, configuration: PropertyConfiguration, parent: any | undefined, engine: Engine) {
     const initialValue:any = _.isArray(configuration.startingValue) ? [] : {};
-    initialValue[changeListeners] = [];
+    initialValue[changeListeners] = configuration.listeners || [];
     initialValue[updaterSymbol] = generateUpdaterFor(initialValue);
     initialValue[childListeners] = {};
     Object.keys(configuration.startingValue).forEach((prop: string) => {
-        if (configuration!.startingValue[prop].updater) { // Attach the updater for this property
+        if (configuration.startingValue[prop].updater) { // Attach the updater for this property
             initialValue[updaterSymbol][prop] = configuration!.startingValue[prop].updater;
         }
         if(!(configuration.startingValue[prop].startingValue instanceof Big) &&_.isObject(configuration.startingValue[prop].startingValue)) {

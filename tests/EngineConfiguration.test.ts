@@ -1,5 +1,6 @@
 import {EngineConfiguration} from "../src/EngineConfiguration";
-import { Big } from "big.js";
+import {Big} from "big.js";
+import {Engine} from "../src";
 
 describe("the engine configuration", function () {
     var configuration: EngineConfiguration;
@@ -100,7 +101,8 @@ describe("configProperty helper", function () {
                 nestedNumber: 1,
                 nestedBoolean: true,
             },
-            existingConfig : EngineConfiguration.configProperty({}, ()=>{})
+            existingConfig: EngineConfiguration.configProperty({}, () => {
+            })
         });
         expect(Object.assign({}, config)).toMatchObject(Object.assign({}, {
             startingValue: {
@@ -123,5 +125,20 @@ describe("configProperty helper", function () {
                 }
             }
         }));
+    });
+    it("adding a listener to a non-object, non-array value throws an error", function () {
+        expect(() => {
+            EngineConfiguration.configProperty(0).withListener(jest.fn())
+        }).toThrow();
+    });
+    it("can add a listener to a property", function () {
+        const listener = jest.fn();
+        const engine = new Engine(new EngineConfiguration()
+            .WithGlobalProperties({
+                property: EngineConfiguration.configProperty({}).withListener(listener)
+            }));
+        engine.globals.property.foo = "bar";
+        expect(listener.mock.calls[0][0]).toBe("foo");
+        expect(listener.mock.calls[0][1]).toBe("bar");
     })
 })
