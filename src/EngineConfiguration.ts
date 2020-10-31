@@ -50,7 +50,7 @@ export class EngineConfiguration {
     }
 
     public static configProperty(startingValue?:any, updater?:(current:any, parent?:any, engine?: Engine)=>any): PropertyConfigurationBuilder {
-        if(_.isObject(startingValue)) {
+        if(_.isObject(startingValue) && startingValue.constructor.name !== "Big") {
             if(startingValue instanceof PropertyConfigurationBuilder) {
                 return startingValue as PropertyConfigurationBuilder;
             }
