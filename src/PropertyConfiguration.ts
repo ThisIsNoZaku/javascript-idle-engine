@@ -45,7 +45,7 @@ export class PropertyConfigurationBuilder implements PropertyConfiguration{
         if(!this.listeners) {
             this.listeners = [];
         }
-        if((this.startingValue instanceof Big) || !_.isObject(this.startingValue) ) {
+        if(!_.isObject(this.startingValue) || this.startingValue.constructor.name === "Big" ) {
             throw new Error("Listeners can only added to objects or arrays.");
         }
         this.listeners.push(listener);

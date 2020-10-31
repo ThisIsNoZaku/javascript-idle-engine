@@ -25,7 +25,7 @@ function generateUpdaterFor(wrappedValue: any) {
                 }
                 if(_.isNumber(newValue)) {
                     newValue = Big(newValue);
-                } else if(!(newValue instanceof Big) &&_.isObject(newValue) && !(<any>newValue).__proxy__) {
+                } else if(_.isObject(newValue) && newValue.constructor.name !== "Big" && !(<any>newValue).__proxy__) {
                     newValue = engine.createReference(EngineConfiguration.configProperty(newValue), wrappedValue);
                 }
                 wrappedValue[child] = newValue;
@@ -36,7 +36,7 @@ function generateUpdaterFor(wrappedValue: any) {
                     });
                 }
             }
-            if (!(wrappedValue[child] instanceof Big) &&_.isObject(wrappedValue[child])) {
+            if (_.isObject(wrappedValue[child]) && wrappedValue[child].constructor.name !== "Big") {
                 wrappedValue[child][updaterSymbol](engine);
             }
         });
@@ -52,7 +52,7 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
         if (configuration.startingValue[prop].updater) { // Attach the updater for this property
             initialValue[updaterSymbol][prop] = configuration!.startingValue[prop].updater;
         }
-        if(!(configuration.startingValue[prop].startingValue instanceof Big) &&_.isObject(configuration.startingValue[prop].startingValue)) {
+        if(_.isObject(configuration.startingValue[prop].startingValue) && configuration.startingValue[prop].startingValue.constructor.name !== "Big") {
             initialValue[prop] = engine.createReference(configuration!.startingValue[prop], id);
             subscribeToChild(initialValue, prop, initialValue[prop]);
         } else {
@@ -115,12 +115,12 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
             return wrappedValue[prop];
         },
         set: function (target: any, prop: string | number, incomingValue: any, receiver: any) {
-            if(!(wrappedValue[prop] instanceof Big) && _.isObject(wrappedValue[prop])) {
+            if(_.isObject(wrappedValue[prop]) && wrappedValue[prop].constructor.name !== "Big") {
                 wrappedValue[childListeners][prop].unsubscribe();
                 delete wrappedValue[childListeners][prop]; // Unsubscribe from the child
             }
             let actualValue:any;
-            if(_.isObject(incomingValue) && !(incomingValue instanceof Big)) {
+            if(_.isObject(incomingValue) && incomingValue.constructor.name !== "Big") {
                 if(!(<any>incomingValue).__proxy__) {
                     actualValue = engine.createReference({
                         startingValue: incomingValue
