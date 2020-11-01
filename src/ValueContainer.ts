@@ -36,7 +36,7 @@ function generateUpdaterFor(wrappedValue: any) {
                     });
                 }
             }
-            if (_.isObject(wrappedValue[child]) && wrappedValue[child].constructor.name !== "Big") {
+            if (_.isObject(wrappedValue[child]) && wrappedValue[child].constructor.name !== "Big" && !_.isFunction(wrappedValue[child])) {
                 wrappedValue[child][updaterSymbol](engine);
             }
         });
