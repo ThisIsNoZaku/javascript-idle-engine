@@ -20,7 +20,7 @@ export class EngineConfiguration {
         if(!(configuration instanceof PropertyConfigurationBuilder)) {
             if (_.isArray(configuration)) {
                 configuration = new PropertyConfigurationBuilder(configuration.map(d => this.transformToConfiguration(d)));
-            } else if (_.isObject(configuration) && configuration.constructor.name !== "Big") {
+            } else if (_.isObject(configuration) && configuration.constructor.name !== "Big" && typeof configuration !== "function") {
                 configuration = new PropertyConfigurationBuilder(Object.keys(configuration).reduce((transformed: any, key: string) => {
                     if(reservedPropertyNames.includes(key)) {
                         throw new Error(`${key} is a reserved keyword and not allowed as a property name`);

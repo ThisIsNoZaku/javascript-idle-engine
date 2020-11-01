@@ -52,7 +52,7 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
         if (configuration.startingValue[prop].updater) { // Attach the updater for this property
             initialValue[updaterSymbol][prop] = configuration!.startingValue[prop].updater;
         }
-        if(_.isObject(configuration.startingValue[prop].startingValue) && configuration.startingValue[prop].startingValue.constructor.name !== "Big") {
+        if(_.isObject(configuration.startingValue[prop].startingValue) && configuration.startingValue[prop].startingValue.constructor.name !== "Big" && typeof configuration.startingValue[prop].startingValue !== "function") {
             initialValue[prop] = engine.createReference(configuration!.startingValue[prop], id);
             subscribeToChild(initialValue, prop, initialValue[prop]);
         } else {

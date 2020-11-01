@@ -140,5 +140,14 @@ describe("configProperty helper", function () {
         engine.globals.property.foo = "bar";
         expect(listener.mock.calls[0][0]).toBe("foo");
         expect(listener.mock.calls[0][1]).toBe("bar");
+    });
+    it("doesn't process function properties", function () {
+        const engine = new Engine(new EngineConfiguration()
+            .WithGlobalProperties({
+                property: function () {
+
+                }
+            }));
+        expect(typeof engine.globals.property).toEqual("function");
     })
 })
