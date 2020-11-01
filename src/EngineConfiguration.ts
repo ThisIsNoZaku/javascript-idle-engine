@@ -5,14 +5,13 @@ import {Engine} from "./Engine";
 import { Big } from "big.js";
 
 export class EngineConfiguration {
-    public globals:{[name:string]: PropertyConfiguration } = {};
+    public globals:PropertyConfiguration = {
+        startingValue: {}
+    };
     public tickRate?:string = "one-second";
 
     public WithGlobalProperties(globals:{[name:string]: any }) {
-        this.globals = Object.keys(globals).reduce((transformed: { [key:string]: PropertyConfiguration }, key) => {
-            transformed[key] = this.transformToConfiguration(globals[key]);
-            return transformed;
-        }, {});
+        this.globals = this.transformToConfiguration(globals);
         return this;
     }
 
@@ -50,7 +49,7 @@ export class EngineConfiguration {
     }
 
     public static configProperty(startingValue?:any, updater?:(current:any, parent?:any, engine?: Engine)=>any): PropertyConfigurationBuilder {
-        if(_.isObject(startingValue) && startingValue.constructor.name !== "Big") {
+        if(_.isObject(startingValue) && startingValue.constructor.name !== "Big" && typeof startingValue !== "function") {
             if(startingValue instanceof PropertyConfigurationBuilder) {
                 return startingValue as PropertyConfigurationBuilder;
             }

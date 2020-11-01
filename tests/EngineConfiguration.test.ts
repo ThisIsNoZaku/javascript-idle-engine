@@ -1,6 +1,7 @@
 import {EngineConfiguration} from "../src/EngineConfiguration";
 import {Big} from "big.js";
 import {Engine} from "../src";
+import {PropertyConfigurationBuilder} from "../src/PropertyConfiguration";
 
 describe("the engine configuration", function () {
     var configuration: EngineConfiguration;
@@ -15,16 +16,16 @@ describe("the engine configuration", function () {
         expect(configuration.globals).not.toBeUndefined();
     })
     it("recursively transforms declaration in arrays", function () {
-        expect(configuration.globals.array.startingValue[0]).toMatchObject({
+        expect(configuration.globals.startingValue.array.startingValue[0]).toMatchObject({
             startingValue: "s"
         });
-        expect(configuration.globals.array.startingValue[1]).toEqual({
+        expect(configuration.globals.startingValue.array.startingValue[1]).toEqual({
             startingValue: Big(1)
         });
-        expect(configuration.globals.array.startingValue[2]).toEqual({
+        expect(configuration.globals.startingValue.array.startingValue[2]).toEqual({
             startingValue: true
         });
-        expect(configuration.globals.array.startingValue[3]).toEqual({
+        expect(configuration.globals.startingValue.array.startingValue[3]).toEqual({
             startingValue: {}
         });
     });
@@ -95,6 +96,9 @@ describe("configProperty helper", function () {
         })
     });
     it("uses an existing configuration object", function () {
+        function f() {
+        }
+
         const config = EngineConfiguration.configProperty({
             object: {
                 nestedString: "nestedString",
@@ -102,7 +106,9 @@ describe("configProperty helper", function () {
                 nestedBoolean: true,
             },
             existingConfig: EngineConfiguration.configProperty({}, () => {
-            })
+            }),
+            aFunction: f,
+            configedFunction: EngineConfiguration.configProperty(f)
         });
         expect(Object.assign({}, config)).toMatchObject(Object.assign({}, {
             startingValue: {
@@ -122,6 +128,12 @@ describe("configProperty helper", function () {
                 existingConfig: {
                     startingValue: {},
                     updater: expect.any(Function)
+                },
+                aFunction: {
+                    startingValue: f
+                },
+                configedFunction: {
+                    startingValue: f
                 }
             }
         }));
@@ -145,9 +157,24 @@ describe("configProperty helper", function () {
         const engine = new Engine(new EngineConfiguration()
             .WithGlobalProperties({
                 property: function () {
-
                 }
             }));
         expect(typeof engine.globals.property).toEqual("function");
-    })
-})
+    });
+    it("works normally with a top=level PropertyConfiguration instance", function () {
+        const config = new EngineConfiguration().WithGlobalProperties(EngineConfiguration.configProperty({
+            property: 1
+        }));
+        expect({...config.globals}).toMatchObject(new PropertyConfigurationBuilder({
+            property: new PropertyConfigurationBuilder(Big(1))
+        }));
+    });
+    it("doesn't process function property in objects passed to configProperty", function () {
+        const engine = new Engine(new EngineConfiguration()
+            .WithGlobalProperties(EngineConfiguration.configProperty({
+                property: function () {
+                }
+            })));
+        expect(typeof engine.globals.property).toBe("function");
+    });
+});

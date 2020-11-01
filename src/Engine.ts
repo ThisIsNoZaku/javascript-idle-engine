@@ -8,9 +8,7 @@ export class Engine {
     public readonly globals: any;
     public readonly tickRate: string;
     private readonly references: any = [];
-    private accumulatedTime: number = 0;
     private nextReferenceId: number = 0;
-    static EngineSymbol: symbol = Symbol("Engine");
     private tickIntervalId?:NodeJS.Timeout;
 
     constructor(configuration: EngineConfiguration) {
@@ -21,11 +19,11 @@ export class Engine {
         this.tickRate = configuration.tickRate || "one-second";
     }
 
-    private generateGlobals(globals: { [p: string]: any } | undefined) {
+    private generateGlobals(globals: PropertyConfiguration | undefined) {
         if (!globals) {
             return {};
         }
-        return this.createReference({startingValue: globals});
+        return this.createReference(globals);
     }
 
     public start() {
