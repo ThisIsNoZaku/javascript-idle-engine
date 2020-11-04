@@ -13,6 +13,7 @@ export interface PropertyConfiguration {
     startingValue?:any;
     updater?: ((current: any, parent?: any, engine?: Engine) => any);
     listeners?:ChangeListener[];
+    postConfigurationHook?:(current:any, parent?:any, engine?:Engine) => void;
 }
 
 /**
@@ -22,6 +23,7 @@ export class PropertyConfigurationBuilder implements PropertyConfiguration{
     startingValue?: any;
     updater?: ((current: any, parent?: any, engine?: Engine) => any);
     listeners?: ChangeListener[];
+    postConfigurationHook?: ((current: any, parent?: any, engine?:Engine) => void);
     public constructor(startingValue?:any, updater?: ((current: any, parent?: any, engine?: Engine) => any)) {
         if(_.isObject(startingValue)) {
             Object.keys(startingValue).forEach(prop => {
@@ -49,6 +51,11 @@ export class PropertyConfigurationBuilder implements PropertyConfiguration{
             throw new Error("Listeners can only added to objects or arrays.");
         }
         this.listeners.push(listener);
+        return this;
+    }
+
+    withPostConfigurationHook(postConfigurationHook: (current:any, parent?:any, engine?: Engine) => void) {
+        this.postConfigurationHook = postConfigurationHook;
         return this;
     }
 }

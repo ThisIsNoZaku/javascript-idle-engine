@@ -177,4 +177,15 @@ describe("configProperty helper", function () {
             })));
         expect(typeof engine.globals.property).toBe("function");
     });
+    it("throws an error if starting value is undefined", function () {
+        expect(()=> EngineConfiguration.configProperty()).toThrow();
+    });
 });
+describe("configuration object post-configuration hook", function () {
+    it("configuration objects can define the hook", function () {
+        const config = EngineConfiguration.configProperty({})
+            .withPostConfigurationHook(jest.fn());
+        // @ts-ignore
+        expect(config.postConfigurationHook).toBeDefined();
+    });
+})

@@ -9,6 +9,7 @@ export class EngineConfiguration {
         startingValue: {}
     };
     public tickRate?:string = "one-second";
+    static PostConfigurationHook: symbol = Symbol.for("post-configuration-hook");
 
     public WithGlobalProperties(globals:{[name:string]: any }) {
         this.globals = this.transformToConfiguration(globals);
@@ -49,6 +50,9 @@ export class EngineConfiguration {
     }
 
     public static configProperty(startingValue?:any, updater?:(current:any, parent?:any, engine?: Engine)=>any): PropertyConfigurationBuilder {
+        if(startingValue === undefined) {
+            throw new Error("Starting value cannot be undefined. If you want an empty value, use null.");
+        }
         if(_.isObject(startingValue) && startingValue.constructor.name !== "Big" && typeof startingValue !== "function") {
             if(startingValue instanceof PropertyConfigurationBuilder) {
                 return startingValue as PropertyConfigurationBuilder;

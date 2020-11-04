@@ -90,4 +90,11 @@ describe("Managed values", function () {
         engine.tick(1);
         expect(watcher).toHaveBeenCalledTimes(1);
     });
+    it("calls any defined postConfigurationHooks", function () {
+        const hook = jest.fn();
+        new Engine(new EngineConfiguration()
+            .WithGlobalProperties(EngineConfiguration.configProperty({})
+                .withPostConfigurationHook(hook)));
+        expect(hook).toHaveBeenCalled();
+    })
 });
