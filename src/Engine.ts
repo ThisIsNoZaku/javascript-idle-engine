@@ -56,7 +56,9 @@ export class Engine {
                 interval = 100;
                 break;
         }
-        this.tickIntervalId = setInterval(this.tick.bind(this, interval), interval)
+        requestAnimationFrame((timestamp: DOMHighResTimeStamp) => {
+            this.tick(timestamp);
+        });
     }
 
     public getReference(id: number | null) {

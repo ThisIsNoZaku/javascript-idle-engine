@@ -14,12 +14,12 @@ export const lastUpdateValue = Symbol.for("last-updated");
 const childListeners = Symbol.for("child-listeners");
 
 function generateUpdaterFor(wrappedValue: any) {
-    return (engine: Engine) => {
+    return (engine: Engine, deltaTime: DOMHighResTimeStamp) => {
         Object.keys(wrappedValue).forEach(child => {
             // Call updater function, if any for the child;
             const updater = wrappedValue[updaterSymbol][child];
             if (updater) {
-                let newValue = updater(wrappedValue[child], wrappedValue, engine);
+                let newValue = updater(wrappedValue[child], wrappedValue, engine, deltaTime);
                 if (newValue === undefined) {
                     throw new Error("An updater method returned undefined, which is not allowed. A method must return a value, return null if 'nothing' is a valid result.");
                 }
@@ -37,7 +37,7 @@ function generateUpdaterFor(wrappedValue: any) {
                 }
             }
             if (_.isObject(wrappedValue[child]) && wrappedValue[child].constructor.name !== "Big" && !_.isFunction(wrappedValue[child])) {
-                wrappedValue[child][updaterSymbol](engine);
+                wrappedValue[child][updaterSymbol](engine, deltaTime);
             }
         });
     }
