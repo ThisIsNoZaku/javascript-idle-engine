@@ -72,6 +72,9 @@ describe("Managed values", function () {
             throw new Error();
         }
     });
+    it("throws an exception when created without a configuration", function () {
+        expect(()=>new Engine(<any>undefined)).toThrow();
+    })
     it("takes a string or number as a starting value", function () {
         expect(engine.globals.string).toBe("string");
         expect(engine.globals.number).toEqual(new Big(1));

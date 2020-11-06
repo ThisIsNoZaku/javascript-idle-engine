@@ -17,7 +17,7 @@ export class Engine {
         }
         const postConfigurationHooks: Array<(engine: Engine) => void> = this.extractPostConfigurationHooks(configuration.globals, []);
 
-        this.globals = this.generateGlobals(configuration.globals);
+        this.globals = this.generateGlobals(configuration.globals || {});
 
         this.tickRate = configuration.tickRate || "one-second";
         postConfigurationHooks.forEach(hook => {
@@ -39,10 +39,7 @@ export class Engine {
         ]);
     }
 
-    private generateGlobals(globals: PropertyConfiguration | undefined) {
-        if (!globals) {
-            return {};
-        }
+    private generateGlobals(globals: PropertyConfiguration) {
         return this.createReference(globals);
     }
 
