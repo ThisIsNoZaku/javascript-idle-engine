@@ -119,7 +119,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                 wrappedValue[childListeners][prop].unsubscribe();
                 delete wrappedValue[childListeners][prop]; // Unsubscribe from the child
             }
-            let actualValue:any;
+            let actualValue:any = incomingValue;
             if(_.isObject(incomingValue) && incomingValue.constructor.name !== "Big") {
                 if(!(<any>incomingValue).__proxy__) {
                     actualValue = engine.createReference({
