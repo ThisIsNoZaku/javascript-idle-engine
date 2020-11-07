@@ -32,7 +32,7 @@ function generateUpdaterFor(wrappedValue: any) {
                 if(_.isObject(newValue) || newValue !== updater[lastUpdateValue]) {
                     updater[lastUpdateValue] = newValue;
                     wrappedValue[changeListeners].forEach((listener: any) => {
-                        listener(child, newValue, wrappedValue);
+                        listener(child, newValue, wrappedValue, engine);
                     });
                 }
             }
