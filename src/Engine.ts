@@ -70,6 +70,7 @@ export class Engine {
     }
 
     createReference(fromConfiguration: PropertyConfiguration, parent?: number) {
+        fromConfiguration = EngineConfiguration.configProperty(fromConfiguration);
         const usedId = this.nextReferenceId++
         const newRef = ValueContainer(usedId, this, fromConfiguration, parent);
         this.references[usedId] = newRef;
