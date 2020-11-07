@@ -65,7 +65,7 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
 }
 
 function subscribeToChild(parent:any, childProp:string | number, child:any) {
-    const childListener = (changedProperty:string, value:any, parent:any, engine:Engine) => {
+    const childListener = (changedProperty:string, value:any, p:any, engine:Engine) => {
         parent[changeListeners].forEach((listener:any) => {
             listener(childProp, parent[childProp], parent, engine);
         });
