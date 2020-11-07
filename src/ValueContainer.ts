@@ -65,9 +65,9 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
 }
 
 function subscribeToChild(parent:any, childProp:string | number, child:any) {
-    const childListener = (changedProperty:string, value:any) => {
+    const childListener = (changedProperty:string, value:any, engine:Engine) => {
         parent[changeListeners].forEach((listener:any) => {
-            listener(childProp, parent[childProp], parent);
+            listener(childProp, parent[childProp], parent, engine);
         });
     };
     parent[childListeners][childProp] = child.watch(childListener);
@@ -136,7 +136,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
             }
             wrappedValue[prop] = actualValue;
             // notify listeners watching this property
-            wrappedValue[changeListeners].forEach((listener:any) => listener(prop, actualValue, wrappedValue));
+            wrappedValue[changeListeners].forEach((listener:any) => listener(prop, actualValue, wrappedValue, engine));
             return true;
         }
     };
