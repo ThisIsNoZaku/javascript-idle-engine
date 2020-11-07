@@ -99,7 +99,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                     case "push":
                         if (wrappedValue && wrappedValue.push) {
                             return (value: any) => {
-                                wrappedValue.push(_.isObject(value) ? engine.createReference({
+                                wrappedValue.push(_.isObject(value) && value.constructor.name !== "Big" ? engine.createReference({
                                     startingValue: value
                                 }, target) : (_.isNumber(value) ? Big(value) : value));
                                 wrappedValue[changeListeners].forEach((listener:any) => listener(wrappedValue.length - 1, value));
