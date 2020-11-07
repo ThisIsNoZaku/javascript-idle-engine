@@ -9,7 +9,8 @@ export class Engine {
     public readonly tickRate: string;
     private readonly references: any = [];
     private nextReferenceId: number = 0;
-    private tickIntervalId?: NodeJS.Timeout;
+    private lastTimestamp?:DOMHighResTimeStamp;
+    private state: string = "inactive";
 
     constructor(configuration: EngineConfiguration) {
         if (configuration == undefined) {
@@ -35,7 +36,8 @@ export class Engine {
                 const initialValue = _.get(engine.globals, pathSoFar);
 
                 configurationObject.postConfigurationHook(initialValue, parent, engine);
-            }}
+            }
+        }
         ]);
     }
 
@@ -44,34 +46,27 @@ export class Engine {
     }
 
     public start() {
-        let interval = 1000;
-        switch (this.tickRate) {
-            case "half-second":
-                interval = 500;
-                break;
-            case "quarter-second":
-                interval = 250;
-                break;
-            case "tenth-second":
-                interval = 100;
-                break;
-        }
-        requestAnimationFrame((timestamp: DOMHighResTimeStamp) => {
-            this.tick(timestamp);
-        });
-    }
-
-    public getReference(id: number | null) {
-        if (id !== null) {
-            return this.references[id];
+        if (this.state !== "running") {
+            requestAnimationFrame(this.tick.bind(this));
+            this.state = "running";
         }
     }
 
-    public tick(interval: number) {
-        const updater = this.globals[updaterSymbol];
-        if (updater) {
-            updater(this, interval);
+    public tick(timestamp: DOMHighResTimeStamp) {
+        if(this.lastTimestamp == null) {
+            this.lastTimestamp = timestamp;
         }
+        const timeSinceLastTimestamp = timestamp - this.lastTimestamp;
+        if(timeSinceLastTimestamp > 50) {
+            if(this.state === "running") {
+                const updater = this.globals[updaterSymbol];
+                if (updater) {
+                    updater(this, timeSinceLastTimestamp);
+                }
+            }
+            this.lastTimestamp = timestamp;
+        }
+        requestAnimationFrame(this.tick.bind(this));
     }
 
     createReference(fromConfiguration: PropertyConfiguration, parent?: number) {
@@ -82,8 +77,6 @@ export class Engine {
     }
 
     pause() {
-        if (this.tickIntervalId !== undefined) {
-            clearInterval(this.tickIntervalId);
-        }
+        this.state = "paused";
     }
 }
