@@ -122,9 +122,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
             let actualValue:any = incomingValue;
             if(_.isObject(incomingValue) && incomingValue.constructor.name !== "Big") {
                 if(!(<any>incomingValue).__proxy__) {
-                    actualValue = engine.createReference({
-                        startingValue: incomingValue
-                    });
+                    actualValue = engine.createReference(EngineConfiguration.configProperty(incomingValue));
                 }
                 subscribeToChild(target, prop, actualValue);
             } else {
