@@ -3,8 +3,8 @@ import * as _ from "lodash";
 import {PropertyConfiguration} from "./PropertyConfiguration";
 import {ChangeListener} from "./ChangeListener";
 import {EngineConfiguration} from "./EngineConfiguration";
-import { Big } from "big.js";
-import { shallowEqualObjects} from "shallow-equal";
+import {Big} from "big.js";
+import {shallowEqualObjects} from "shallow-equal";
 
 const interceptedProperties: any[] = ["watch", "push", "__proxy__"];
 export const reservedPropertyNames = ["on", "watch", "startingValue"];
@@ -24,13 +24,15 @@ function generateUpdaterFor(wrappedValue: any) {
                 if (newValue === undefined) {
                     throw new Error("An updater method returned undefined, which is not allowed. A method must return a value, return null if 'nothing' is a valid result.");
                 }
-                if(_.isNumber(newValue)) {
+                if (_.isNumber(newValue)) {
                     newValue = Big(newValue);
-                } else if(_.isObject(newValue) && newValue.constructor.name !== "Big" && !(<any>newValue).__proxy__) {
+                } else if (_.isObject(newValue) && newValue.constructor.name !== "Big" && !(<any>newValue).__proxy__) {
                     newValue = engine.createReference(EngineConfiguration.configProperty(newValue), wrappedValue);
                 }
                 wrappedValue[child] = newValue;
-                if(!shallowEqualObjects(newValue, updater[lastUpdateValue])) {
+                const newAndOldNumbers = _.isObject(newValue) && _.isObject(updater[lastUpdateValue])
+                    && newValue.constructor.name === 'Big' && updater[lastUpdateValue].constructor.name === "Big";
+                if ((newAndOldNumbers && !(<Big>newValue).eq(updater[lastUpdateValue])) || (!newAndOldNumbers && !shallowEqualObjects(newValue, updater[lastUpdateValue]))) {
                     updater[lastUpdateValue] = newValue;
                     wrappedValue[changeListeners].forEach((listener: any) => {
                         listener(child, newValue, wrappedValue, engine);
@@ -45,7 +47,7 @@ function generateUpdaterFor(wrappedValue: any) {
 }
 
 function initialConfiguration(id: number, configuration: PropertyConfiguration, parent: any | undefined, engine: Engine) {
-    const initialValue:any = _.isArray(configuration.startingValue) ? [] : {};
+    const initialValue: any = _.isArray(configuration.startingValue) ? [] : {};
     initialValue[changeListeners] = configuration.listeners || [];
     initialValue[updaterSymbol] = generateUpdaterFor(initialValue);
     initialValue[childListeners] = {};
@@ -53,7 +55,7 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
         if (configuration.startingValue[prop].updater) { // Attach the updater for this property
             initialValue[updaterSymbol][prop] = configuration!.startingValue[prop].updater;
         }
-        if(_.isObject(configuration.startingValue[prop].startingValue) && configuration.startingValue[prop].startingValue.constructor.name !== "Big" && typeof configuration.startingValue[prop].startingValue !== "function") {
+        if (_.isObject(configuration.startingValue[prop].startingValue) && configuration.startingValue[prop].startingValue.constructor.name !== "Big" && typeof configuration.startingValue[prop].startingValue !== "function") {
             initialValue[prop] = engine.createReference(configuration!.startingValue[prop], id);
             subscribeToChild(initialValue, prop, initialValue[prop]);
         } else {
@@ -65,9 +67,9 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
     return initialValue;
 }
 
-function subscribeToChild(parent:any, childProp:string | number, child:any) {
-    const childListener = (changedProperty:string, value:any, p:any, engine:Engine) => {
-        parent[changeListeners].forEach((listener:any) => {
+function subscribeToChild(parent: any, childProp: string | number, child: any) {
+    const childListener = (changedProperty: string, value: any, p: any, engine: Engine) => {
+        parent[changeListeners].forEach((listener: any) => {
             listener(childProp, parent[childProp], parent, engine);
         });
     };
@@ -76,7 +78,7 @@ function subscribeToChild(parent:any, childProp:string | number, child:any) {
 
 export function ValueContainer(id: number, engine: Engine, configuration: PropertyConfiguration, parent?: any) {
     let wrappedValue: any = initialConfiguration(id, configuration, parent, engine);
-    if(!_.isObject(configuration.startingValue)) {
+    if (!_.isObject(configuration.startingValue)) {
         throw new Error("Cannot wrap non-object values");
     }
 
@@ -84,16 +86,17 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
         get: function (target: any, prop: string | number | symbol, receiver: any) {
             if (interceptedProperties.includes(prop)) {
                 switch (prop) {
-                    case "__proxy__":return true;
+                    case "__proxy__":
+                        return true;
                     case "watch":
                         return (listener: ChangeListener) => {
-                            if(typeof listener !== "function") {
+                            if (typeof listener !== "function") {
                                 throw new Error("Tried to call watch with a non-function argument.");
                             }
                             wrappedValue[changeListeners].push(listener);
                             return {
                                 unsubscribe: function () {
-                                    wrappedValue[changeListeners] = wrappedValue[changeListeners].filter((l:any) => l !== listener);
+                                    wrappedValue[changeListeners] = wrappedValue[changeListeners].filter((l: any) => l !== listener);
                                 }
                             }
                         };
@@ -103,7 +106,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                                 wrappedValue.push(_.isObject(value) && value.constructor.name !== "Big" ? engine.createReference({
                                     startingValue: value
                                 }, target) : (_.isNumber(value) ? Big(value) : value));
-                                wrappedValue[changeListeners].forEach((listener:any) => listener(wrappedValue.length - 1, value));
+                                wrappedValue[changeListeners].forEach((listener: any) => listener(wrappedValue.length - 1, value));
                             }
                         } else {
                             return undefined; // Don't return the function if the value doesn't define it.
@@ -116,18 +119,18 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
             return wrappedValue[prop];
         },
         set: function (target: any, prop: string | number, incomingValue: any, receiver: any) {
-            if(_.isObject(wrappedValue[prop]) && wrappedValue[prop].constructor.name !== "Big") {
+            if (_.isObject(wrappedValue[prop]) && wrappedValue[prop].constructor.name !== "Big") {
                 wrappedValue[childListeners][prop].unsubscribe();
                 delete wrappedValue[childListeners][prop]; // Unsubscribe from the child
             }
-            let actualValue:any = incomingValue;
-            if(_.isObject(incomingValue) && incomingValue.constructor.name !== "Big") {
-                if(!(<any>incomingValue).__proxy__) {
+            let actualValue: any = incomingValue;
+            if (_.isObject(incomingValue) && incomingValue.constructor.name !== "Big") {
+                if (!(<any>incomingValue).__proxy__) {
                     actualValue = engine.createReference(EngineConfiguration.configProperty(incomingValue));
                 }
                 subscribeToChild(target, prop, actualValue);
             } else {
-                if(_.isNumber(incomingValue)) {
+                if (_.isNumber(incomingValue)) {
                     actualValue = Big(incomingValue);
                 } else {
                     actualValue = incomingValue;
@@ -135,7 +138,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
             }
             wrappedValue[prop] = actualValue;
             // notify listeners watching this property
-            wrappedValue[changeListeners].forEach((listener:any) => listener(prop, actualValue, wrappedValue, engine));
+            wrappedValue[changeListeners].forEach((listener: any) => listener(prop, actualValue, wrappedValue, engine));
             return true;
         }
     };

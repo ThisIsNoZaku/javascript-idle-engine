@@ -70,8 +70,9 @@ describe("ValueContainer wrapping a primitive", function () {
         const listener = jest.fn();
         ref.watch(listener);
         (<any>engine).state = "running";
-        engine.tick(100);
-        expect(listener).not.toHaveBeenCalled();
+        ref[updaterSymbol](engine, 100);
+        ref[updaterSymbol](engine, 100);
+        expect(listener).toHaveBeenCalledTimes(1);
     });
     it("if update does not change an object value, it does not notify parents", function () {
         const ref = ValueContainer(1, engine, {
