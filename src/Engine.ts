@@ -53,11 +53,12 @@ export class Engine {
     }
 
     public tick(timestamp: DOMHighResTimeStamp) {
-        if(this.lastTimestamp == null) {
-            this.lastTimestamp = timestamp;
-        }
-        const timeSinceLastTimestamp = timestamp - this.lastTimestamp;
-        if(timeSinceLastTimestamp > 50) {
+
+        const timeSinceLastTimestamp = timestamp - (this.lastTimestamp || 0);
+        if(timeSinceLastTimestamp > 50 || this.lastTimestamp === undefined) {
+            if(this.lastTimestamp == null) {
+                this.lastTimestamp = timestamp;
+            }
             if(this.state === "running") {
                 const updater = this.globals[updaterSymbol];
                 if (updater) {
