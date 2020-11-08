@@ -4,6 +4,7 @@ import {PropertyConfiguration} from "./PropertyConfiguration";
 import {ChangeListener} from "./ChangeListener";
 import {EngineConfiguration} from "./EngineConfiguration";
 import { Big } from "big.js";
+import { shallowEqualObjects} from "shallow-equal";
 
 const interceptedProperties: any[] = ["watch", "push", "__proxy__"];
 export const reservedPropertyNames = ["on", "watch", "startingValue"];
@@ -29,7 +30,7 @@ function generateUpdaterFor(wrappedValue: any) {
                     newValue = engine.createReference(EngineConfiguration.configProperty(newValue), wrappedValue);
                 }
                 wrappedValue[child] = newValue;
-                if(_.isObject(newValue) || newValue !== updater[lastUpdateValue]) {
+                if(!shallowEqualObjects(newValue, updater[lastUpdateValue])) {
                     updater[lastUpdateValue] = newValue;
                     wrappedValue[changeListeners].forEach((listener: any) => {
                         listener(child, newValue, wrappedValue, engine);

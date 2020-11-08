@@ -1,4 +1,4 @@
-import {changeListeners, ValueContainer} from "../src/ValueContainer";
+import {changeListeners, updaterSymbol, ValueContainer} from "../src/ValueContainer";
 import {Engine} from "../src/Engine";
 import {EngineConfiguration} from "../src";
 import {Big} from "big.js";
@@ -17,7 +17,7 @@ describe("ValueContainer wrapping a primitive", function () {
         engine = new Engine(new EngineConfiguration());
 
     });
-    it("can wrap an object or primitive", function () {
+    it("can wrap an object", function () {
         const ref = ValueContainer(1, <Engine>(<unknown>null), {startingValue: {}});
         expect(ref).toMatchObject({});
     });
@@ -60,6 +60,30 @@ describe("ValueContainer wrapping a primitive", function () {
         expect(parentListener.mock.calls[0][1]).toMatchObject({
             property: "123"
         });
+    });
+    it("if update does not change a primitive value, it does not notify parents", function () {
+        const ref = ValueContainer(1, engine, {
+            startingValue: {
+                property: EngineConfiguration.configProperty(0).withUpdater((current => current))
+            }
+        });
+        const listener = jest.fn();
+        ref.watch(listener);
+        (<any>engine).state = "running";
+        engine.tick(100);
+        expect(listener).not.toHaveBeenCalled();
+    });
+    it("if update does not change an object value, it does not notify parents", function () {
+        const ref = ValueContainer(1, engine, {
+            startingValue: {
+                property: EngineConfiguration.configProperty({}).withUpdater((current => current))
+            }
+        });
+        const listener = jest.fn();
+        ref.watch(listener);
+        ref[updaterSymbol](engine, 100);
+        ref[updaterSymbol](engine, 100);
+        expect(listener).toHaveBeenCalledTimes(1);
     });
     it("subscriptions to the container can be removed", function () {
         const ref = ValueContainer(1, engine, {startingValue: {}});
