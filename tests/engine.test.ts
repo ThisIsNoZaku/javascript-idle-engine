@@ -7,6 +7,14 @@ import {Big} from "big.js";
 
 describe("the engine", function () {
     let engine: Engine;
+    beforeAll(() => {
+        global.requestAnimationFrame = function (callback: any) {
+            setTimeout(() => {
+                callback(100);
+            });
+            return 0;
+        }
+    });
     beforeEach(() => {
         engine = new Engine(new EngineConfiguration().WithGlobalProperties({
             string: "string",
@@ -38,6 +46,7 @@ describe("the engine", function () {
                 })
             }
         }));
+        (<any>engine).state = "running";
         expect(() => engine.tick(1000)).not.toThrow();
         expect(engine.globals.object.updated).toEqual(Big(1));
     });
@@ -57,6 +66,14 @@ describe("the engine", function () {
 
 describe("Managed values", function () {
     let engine: Engine;
+    beforeAll(() => {
+        global.requestAnimationFrame = function (callback: any) {
+            setTimeout(() => {
+                callback(100);
+            });
+            return 0;
+        }
+    });
     beforeEach(() => {
         engine = new Engine(new EngineConfiguration().WithGlobalProperties({
             string: "string",
@@ -89,8 +106,9 @@ describe("Managed values", function () {
     it("does not call listeners when update does not change a value", function () {
         const watcher = jest.fn();
         engine.globals.withUpdater.watch(watcher);
-        engine.tick(1);
-        engine.tick(1);
+        (<any>engine).state = "running";
+        engine.tick(100);
+        engine.tick(100);
         expect(watcher).toHaveBeenCalledTimes(1);
     });
     it("calls any defined postConfigurationHooks", function () {
@@ -99,5 +117,5 @@ describe("Managed values", function () {
             .WithGlobalProperties(EngineConfiguration.configProperty({})
                 .withPostConfigurationHook(hook)));
         expect(hook).toHaveBeenCalled();
-    })
+    });
 });

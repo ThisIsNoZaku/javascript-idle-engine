@@ -1,11 +1,22 @@
 import {changeListeners, ValueContainer} from "../src/ValueContainer";
 import {Engine} from "../src/Engine";
 import {EngineConfiguration} from "../src";
-import { Big } from "big.js";
+import {Big} from "big.js";
 
 describe("ValueContainer wrapping a primitive", function () {
     let engine: Engine;
-    beforeEach(() => engine = new Engine(new EngineConfiguration()));
+    beforeAll(() => {
+        global.requestAnimationFrame = function (callback: any) {
+            setTimeout(() => {
+                callback(1);
+            });
+            return 0;
+        }
+    });
+    beforeEach(() => {
+        engine = new Engine(new EngineConfiguration());
+
+    });
     it("can wrap an object or primitive", function () {
         const ref = ValueContainer(1, <Engine>(<unknown>null), {startingValue: {}});
         expect(ref).toMatchObject({});
@@ -32,7 +43,7 @@ describe("ValueContainer wrapping a primitive", function () {
         const listener = jest.fn();
         ref.watch(listener);
         ref.foo = "new";
-        expect(listener).toHaveBeenCalledWith("foo", "new", expect.objectContaining(ref));
+        expect(listener).toHaveBeenCalledWith("foo", "new", expect.objectContaining(ref), engine);
     });
     it("when a child object changes, that objects parents are notified as well", function () {
         const ref = ValueContainer(1, engine, {
@@ -59,11 +70,13 @@ describe("ValueContainer wrapping a primitive", function () {
         expect(changeCallback).not.toHaveBeenCalled();
     });
     it("if a child object is replaced, the parent no longer receives change notifications about it", function () {
-        const ref = ValueContainer(1, engine, {startingValue: {
-            child: {
-                startingValue: {}
+        const ref = ValueContainer(1, engine, {
+            startingValue: {
+                child: {
+                    startingValue: {}
+                }
             }
-            }});
+        });
         const changeCallback = jest.fn();
         const firstChild = ref.child;
         ref.child.watch(changeCallback);
@@ -75,7 +88,14 @@ describe("ValueContainer wrapping a primitive", function () {
 });
 
 describe("array ValueContainer", function () {
-
+    beforeAll(() => {
+        global.requestAnimationFrame = function (callback: any) {
+            setTimeout(() => {
+                callback(1);
+            });
+            return 0;
+        }
+    });
     let engine: Engine;
     beforeEach(() => engine = new Engine(new EngineConfiguration()
         .WithGlobalProperties({
@@ -161,7 +181,8 @@ describe("array ValueContainer", function () {
                     }).withUpdater(topUpdater)
                 }
             ));
-        engine.tick(1);
+        (<any>engine).state = "running";
+        engine.tick(100);
         expect(topUpdater).toHaveBeenCalled();
         expect(middleUpdater).toHaveBeenCalled();
         expect(bottomUpdater).toHaveBeenCalled();
