@@ -207,6 +207,7 @@ describe("array ValueContainer", function () {
                 }
             ));
         (<any>engine).state = "running";
+        engine.tick(0);
         engine.tick(100);
         expect(topUpdater).toHaveBeenCalled();
         expect(middleUpdater).toHaveBeenCalled();

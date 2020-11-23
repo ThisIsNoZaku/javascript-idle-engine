@@ -47,6 +47,7 @@ describe("the engine", function () {
             }
         }));
         (<any>engine).state = "running";
+        engine.tick(0);
         expect(() => engine.tick(1000)).not.toThrow();
         expect(engine.globals.object.updated).toEqual(Big(1));
     });
@@ -108,7 +109,7 @@ describe("Managed values", function () {
         engine.globals.withUpdater.watch(watcher);
         (<any>engine).state = "running";
         engine.tick(100);
-        engine.tick(100);
+        engine.tick(200);
         expect(watcher).toHaveBeenCalledTimes(1);
     });
     it("calls any defined postConfigurationHooks", function () {

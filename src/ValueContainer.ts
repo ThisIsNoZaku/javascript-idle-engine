@@ -67,7 +67,7 @@ function initialConfiguration(id: number, configuration: PropertyConfiguration, 
     return initialValue;
 }
 
-function subscribeToChild(parent: any, childProp: string | number, child: any) {
+function subscribeToChild(parent: any, childProp: string | symbol | number, child: any) {
     const childListener = (changedProperty: string, value: any, p: any, engine: Engine) => {
         parent[changeListeners].forEach((listener: any) => {
             listener(childProp, parent[childProp], parent, engine);
@@ -103,9 +103,7 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                     case "push":
                         if (wrappedValue && wrappedValue.push) {
                             return (value: any) => {
-                                wrappedValue.push(_.isObject(value) && value.constructor.name !== "Big" ? engine.createReference({
-                                    startingValue: value
-                                }, target) : (_.isNumber(value) ? Big(value) : value));
+                                wrappedValue.push(transformIncomingValue(target, prop, value, engine));
                                 wrappedValue[changeListeners].forEach((listener: any) => listener(wrappedValue.length - 1, value));
                             }
                         } else {
@@ -123,25 +121,29 @@ export function ValueContainer(id: number, engine: Engine, configuration: Proper
                 wrappedValue[childListeners][prop].unsubscribe();
                 delete wrappedValue[childListeners][prop]; // Unsubscribe from the child
             }
-            let actualValue: any = incomingValue;
-            if (_.isObject(incomingValue) && incomingValue.constructor.name !== "Big") {
-                if (!(<any>incomingValue).__proxy__) {
-                    actualValue = engine.createReference(EngineConfiguration.configProperty(incomingValue));
-                }
-                subscribeToChild(target, prop, actualValue);
-            } else {
-                if (_.isNumber(incomingValue)) {
-                    actualValue = Big(incomingValue);
-                } else {
-                    actualValue = incomingValue;
-                }
-            }
-            wrappedValue[prop] = actualValue;
+            wrappedValue[prop] = transformIncomingValue(target, prop, incomingValue, engine);
             // notify listeners watching this property
-            wrappedValue[changeListeners].forEach((listener: any) => listener(prop, actualValue, wrappedValue, engine));
+            wrappedValue[changeListeners].forEach((listener: any) => listener(prop, wrappedValue[prop], wrappedValue, engine));
             return true;
         }
     };
     wrappedValue[referenceIdSymbol] = id;
     return new Proxy(wrappedValue, handler);
+}
+
+function transformIncomingValue(target: any, prop: string | number | symbol, incomingValue: any, engine: Engine) {
+    let actualValue = incomingValue;
+    if (_.isObject(incomingValue) && incomingValue.constructor.name !== "Big") {
+        if (!(<any>incomingValue).__proxy__) {
+            actualValue = engine.createReference(EngineConfiguration.configProperty(incomingValue));
+        }
+        subscribeToChild(target, prop, actualValue);
+    } else {
+        if (_.isNumber(incomingValue)) {
+            actualValue = Big(incomingValue);
+        } else {
+            actualValue = incomingValue;
+        }
+    }
+    return actualValue;
 }
